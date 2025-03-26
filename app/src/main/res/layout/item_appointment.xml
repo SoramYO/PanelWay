@@ -12,26 +12,26 @@
         android:padding="16dp">
 
         <TextView
-            android:id="@+id/titleText"
+            android:id="@+id/appointmentCodeText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="18sp"
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/locationText"
+            android:id="@+id/appointmentStatusText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp" />
 
         <TextView
-            android:id="@+id/dateText"
+            android:id="@+id/appointmentPlaceText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp" />
 
         <TextView
-            android:id="@+id/statusText"
+            android:id="@+id/appointmentDateText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
@@ -40,6 +40,7 @@
             android:textColor="@android:color/white" />
 
         <LinearLayout
+            android:id="@+id/actionButtonsLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">

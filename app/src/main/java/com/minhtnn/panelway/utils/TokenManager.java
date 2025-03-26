@@ -7,39 +7,37 @@ import android.content.SharedPreferences;
  * Utility class to manage authentication tokens
  */
 public class TokenManager {
-    private static final String PREF_NAME = "AuthPrefs";
-    private static final String KEY_TOKEN = "auth_token";
-
     private static TokenManager instance;
-    private SharedPreferences preferences;
+    private SharedPreferences sharedPreferences;
+    private static final String TOKEN_KEY = "auth_token";
 
     private TokenManager(Context context) {
-        preferences = context.getApplicationContext()
-                .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        sharedPreferences = context.getSharedPreferences("TokenPrefs", Context.MODE_PRIVATE);
     }
 
-    public static synchronized TokenManager getInstance() {
+    public static synchronized void init(Context context) {
         if (instance == null) {
-            throw new IllegalStateException("TokenManager must be initialized with init() method before getting instance");
+            instance = new TokenManager(context.getApplicationContext());
+        }
+    }
+
+    public static TokenManager getInstance() {
+        if (instance == null) {
+            throw new IllegalStateException("TokenManager must be initialized before use");
         }
         return instance;
     }
 
-    public static void init(Context context) {
-        if (instance == null) {
-            instance = new TokenManager(context);
-        }
+    public String getToken() {
+        // Ensures an empty string is returned instead of null
+        return sharedPreferences.getString(TOKEN_KEY, "");
     }
 
     public void saveToken(String token) {
-        preferences.edit().putString(KEY_TOKEN, token).apply();
-    }
-
-    public String getToken() {
-        return preferences.getString(KEY_TOKEN, null);
+        sharedPreferences.edit().putString(TOKEN_KEY, token).apply();
     }
 
     public void clearToken() {
-        preferences.edit().remove(KEY_TOKEN).apply();
+        sharedPreferences.edit().remove(TOKEN_KEY).apply();
     }
 }

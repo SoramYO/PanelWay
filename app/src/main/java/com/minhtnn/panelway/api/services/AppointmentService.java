@@ -5,7 +5,9 @@ import com.minhtnn.panelway.models.request.CreateAppointmentRequest;
 import com.minhtnn.panelway.models.request.RejectAppointmentRequest;
 
 import java.util.List;
+import java.util.Date;
 
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
@@ -18,22 +20,13 @@ public interface AppointmentService {
     @POST("appointments")
     Single<Appointment> createAppointment(@Body CreateAppointmentRequest request);
 
-    @GET("appointments")
-    Single<List<Appointment>> getAppointments(
-            @Query("status") String status,
-            @Query("userId") String userId,
-            @Query("role") String role
+    @GET("appointments/account/{id}")
+    Single<List<Appointment>> getAccountAppointments(
+            @Path("id") String accountId,
+            @Query("role") String role,
+            @Query("bookDate") String bookDate
     );
 
-    @PUT("appointments/{id}")
-    Single<Appointment> confirmAppointment(@Path("id") String appointmentId);
 
-    @PUT("appointments/{id}")
-    Single<Appointment> rejectAppointment(
-            @Path("id") String appointmentId,
-            @Body RejectAppointmentRequest request
-    );
-
-    @PUT("appointments/{id}/cancel")
-    Single<Appointment> cancelAppointment(@Path("id") String appointmentId);
+    Completable cancelAppointment(String appointmentId);
 }
