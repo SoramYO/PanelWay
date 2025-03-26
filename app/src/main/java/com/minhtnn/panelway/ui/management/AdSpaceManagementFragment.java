@@ -1,49 +1,38 @@
 package com.minhtnn.panelway.ui.management;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.DatePicker;
+import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.minhtnn.panelway.databinding.FragmentAdSpaceManagementBinding;
-import com.minhtnn.panelway.models.AdvertisementSpace;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.chip.Chip;
-
-import java.util.ArrayList;
-import java.util.List;
-
-// Add these imports
-import android.widget.Spinner;
-import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.tabs.TabLayout;
 import com.minhtnn.panelway.R;
-import com.minhtnn.panelway.adapters.AdSpaceAdapter;
+import com.minhtnn.panelway.adapters.RentalLocationAdapter;
+import com.minhtnn.panelway.databinding.FragmentAdSpaceManagementBinding;
+import com.minhtnn.panelway.models.RentalLocation;
+import com.minhtnn.panelway.models.request.RentalLocationRequest;
 
-public class AdSpaceManagementFragment extends Fragment {
+import java.util.Calendar;
+import java.util.Date;
+
+public class AdSpaceManagementFragment extends Fragment implements RentalLocationAdapter.OnLocationActionListener {
+
     private FragmentAdSpaceManagementBinding binding;
     private AdSpaceManagementViewModel viewModel;
-    private AdSpaceAdapter adapter;
-    private final ActivityResultLauncher<Intent> imagePickerLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getResultCode() == Activity.RESULT_OK) {
-                    Uri imageUri = result.getData().getData();
-                    viewModel.uploadImage(imageUri);
-                }
-            });
+    private RentalLocationAdapter adapter;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -54,120 +43,242 @@ public class AdSpaceManagementFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         viewModel = new ViewModelProvider(this).get(AdSpaceManagementViewModel.class);
 
-        setupRecyclerView();
-        setupAddButton();
-        observeData();
+    setupRecyclerView();
+    setupTabLayout();
+    setupAddButton();
+    setupLoadMoreButton();
+    observeViewModel();
     }
 
+    private void setupLoadMoreButton() {
+    binding.loadMoreButton.setOnClickListener(v -> viewModel.loadMore());
+}
+
     private void setupRecyclerView() {
-        adapter = new AdSpaceAdapter(space -> {
-            if (space != null) {
-                showEditDialog(space);
-            } else {
-                showDeleteConfirmation(space);
+        adapter = new RentalLocationAdapter(this);
+        binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        binding.recyclerView.setAdapter(adapter);
+    }
+
+    private void setupTabLayout() {
+        binding.tabLayout.addTab(binding.tabLayout.newTab().setText("Tất cả"));
+        binding.tabLayout.addTab(binding.tabLayout.newTab().setText("Khả dụng"));
+        binding.tabLayout.addTab(binding.tabLayout.newTab().setText("Đã thuê"));
+        binding.tabLayout.addTab(binding.tabLayout.newTab().setText("Chờ duyệt"));
+
+        binding.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                String filter = null;
+                switch (tab.getPosition()) {
+                    case 0: // Tất cả
+                        filter = null;
+                        break;
+                    case 1: // Khả dụng
+                        filter = "Available";
+                        break;
+                    case 2: // Đã thuê
+                        filter = "Occupied";
+                        break;
+                    case 3: // Chờ duyệt
+                        filter = "Pending";
+                        break;
+                }
+                viewModel.setStatusFilter(filter);
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
             }
         });
-        binding.adSpacesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        binding.adSpacesRecyclerView.setAdapter(adapter);
     }
 
     private void setupAddButton() {
-        binding.addButton.setOnClickListener(v -> showEditDialog(null));
+        binding.addButton.setOnClickListener(v -> showAddEditDialog(null));
     }
 
-    private void showEditDialog(AdvertisementSpace space) {
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_ad_space_edit, null);
-        setupDialogViews(dialogView, space);
-
-        new MaterialAlertDialogBuilder(requireContext())
-                .setTitle(space == null ? "Add Ad Space" : "Edit Ad Space")
-                .setView(dialogView)
-                .setPositiveButton("Save", (dialog, which) -> {
-                    saveAdSpace(dialogView, space);
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
-
-    private void setupDialogViews(View dialogView, AdvertisementSpace space) {
-        // Setup status spinner
-        String[] statuses = {"Available", "Rented", "Pending"};
-        ArrayAdapter<String> statusAdapter = new ArrayAdapter<>(
-                requireContext(), android.R.layout.simple_spinner_item, statuses);
-        statusAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        Spinner statusSpinner = (Spinner) dialogView.findViewById(R.id.statusSpinner);
-        statusSpinner.setAdapter(statusAdapter);
-
-        // Fill existing data if editing
-        if (space != null) {
-            ((TextInputEditText) dialogView.findViewById(R.id.titleInput)).setText(space.getTitle());
-            ((TextInputEditText) dialogView.findViewById(R.id.descriptionInput)).setText(space.getDescription());
-            ((TextInputEditText) dialogView.findViewById(R.id.locationInput)).setText(space.getLocation());
-            ((TextInputEditText) dialogView.findViewById(R.id.priceInput)).setText(String.valueOf(space.getPrice()));
-            statusSpinner.setSelection(getStatusPosition(space.getStatus(), statuses));
-        }
-
-        // Setup image upload
-        dialogView.findViewById(R.id.uploadImageButton).setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("image/*");
-            imagePickerLauncher.launch(intent);
+    private void observeViewModel() {
+        viewModel.getRentalLocations().observe(getViewLifecycleOwner(), locations -> {
+            adapter.submitList(locations);
+            binding.emptyView.setVisibility(locations.isEmpty() ? View.VISIBLE : View.GONE);
+            binding.recyclerView.setVisibility(locations.isEmpty() ? View.GONE : View.VISIBLE);
+            binding.loadMoreButton.setVisibility(locations.isEmpty() ? View.GONE : View.VISIBLE);
         });
-    }
 
-    private void saveAdSpace(View dialogView, AdvertisementSpace existingSpace) {
-        String title = ((TextInputEditText) dialogView.findViewById(R.id.titleInput)).getText().toString();
-        String description = ((TextInputEditText) dialogView.findViewById(R.id.descriptionInput)).getText().toString();
-        String location = ((TextInputEditText) dialogView.findViewById(R.id.locationInput)).getText().toString();
-        String priceStr = ((TextInputEditText) dialogView.findViewById(R.id.priceInput)).getText().toString();
-        String status = ((Spinner) dialogView.findViewById(R.id.statusSpinner)).getSelectedItem().toString();
-
-        if (title.isEmpty() || description.isEmpty() || location.isEmpty() || priceStr.isEmpty()) {
-            Toast.makeText(getContext(), "Please fill all fields", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        double price = Double.parseDouble(priceStr);
-
-        if (existingSpace == null) {
-            viewModel.createAdSpace(title, description, location, price, status);
-        } else {
-            viewModel.updateAdSpace(existingSpace.getId(), title, description, location, price, status);
-        }
-    }
-
-    private void showDeleteConfirmation(AdvertisementSpace space) {
-        new MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Delete Ad Space")
-                .setMessage("Are you sure you want to delete this ad space?")
-                .setPositiveButton("Delete", (dialog, which) -> {
-                    viewModel.deleteAdSpace(space.getId());
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
-
-    private void observeData() {
-        viewModel.getAdSpaces().observe(getViewLifecycleOwner(), spaces -> {
-            adapter.submitList(spaces);
+        viewModel.isLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
         });
 
         viewModel.getError().observe(getViewLifecycleOwner(), error -> {
-            if (error != null) {
-                Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
+            if (error != null && !error.isEmpty()) {
+                Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show();
+                viewModel.clearError();
+            }
+        });
+
+        viewModel.getOperationSuccess().observe(getViewLifecycleOwner(), success -> {
+            if (success != null && success) {
+                Toast.makeText(requireContext(), "Thao tác thành công", Toast.LENGTH_SHORT).show();
+                viewModel.clearOperationSuccess();
             }
         });
     }
 
-    private int getStatusPosition(String status, String[] statuses) {
-        for (int i = 0; i < statuses.length; i++) {
-            if (statuses[i].equals(status)) {
-                return i;
+    @Override
+    public void onEditClick(RentalLocation location) {
+        showAddEditDialog(location);
+    }
+
+    @Override
+    public void onDeleteClick(RentalLocation location) {
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Xác nhận xóa")
+                .setMessage("Bạn có chắc chắn muốn xóa không gian quảng cáo " + location.getCode() + "?")
+                .setPositiveButton("Xóa", (dialog, which) -> viewModel.deleteRentalLocation(location.getId()))
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+    @Override
+    public void onStatusClick(RentalLocation location) {
+        String currentStatus = location.getStatus();
+        String newStatus;
+
+        switch (currentStatus) {
+            case "Available":
+                newStatus = "Occupied";
+                break;
+            case "Occupied":
+                newStatus = "Available";
+                break;
+            case "Pending":
+                newStatus = "Available";
+                break;
+            default:
+                newStatus = "Available";
+        }
+
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Thay đổi trạng thái")
+                .setMessage("Bạn có muốn thay đổi trạng thái từ " + currentStatus + " sang " + newStatus + "?")
+                .setPositiveButton("Xác nhận", (dialog, which) -> viewModel.updateStatus(location.getId(), newStatus))
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+    private void showAddEditDialog(RentalLocation location) {
+        BottomSheetDialog dialog = new BottomSheetDialog(requireContext());
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_rental_location, null);
+        dialog.setContentView(dialogView);
+
+        EditText codeInput = dialogView.findViewById(R.id.codeInput);
+        EditText addressInput = dialogView.findViewById(R.id.addressInput);
+        EditText descriptionInput = dialogView.findViewById(R.id.descriptionInput);
+        EditText panelSizeInput = dialogView.findViewById(R.id.panelSizeInput);
+        EditText priceInput = dialogView.findViewById(R.id.priceInput);
+        EditText latitudeInput = dialogView.findViewById(R.id.latitudeInput);
+        EditText longitudeInput = dialogView.findViewById(R.id.longitudeInput);
+        DatePicker datePicker = dialogView.findViewById(R.id.datePicker);
+        Spinner statusSpinner = dialogView.findViewById(R.id.statusSpinner);
+
+        // Setup spinner
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+                requireContext(),
+                R.array.rental_location_statuses,
+                android.R.layout.simple_spinner_item
+        );
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        statusSpinner.setAdapter(adapter);
+
+        // Fill existing data if editing
+        if (location != null) {
+            codeInput.setText(location.getCode());
+            addressInput.setText(location.getAddress());
+            descriptionInput.setText(location.getDescription());
+            panelSizeInput.setText(location.getPanelSize());
+            priceInput.setText(String.valueOf(location.getPrice()));
+            latitudeInput.setText(String.valueOf(location.getLatitude()));
+            longitudeInput.setText(String.valueOf(location.getLongitude()));
+
+            if (location.getAvailableDate() != null) {
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTime(location.getAvailableDate());
+                datePicker.updateDate(
+                        calendar.get(Calendar.YEAR),
+                        calendar.get(Calendar.MONTH),
+                        calendar.get(Calendar.DAY_OF_MONTH)
+                );
+            }
+
+            // Set status spinner selection
+            String status = location.getStatus();
+            for (int i = 0; i < adapter.getCount(); i++) {
+                if (adapter.getItem(i).toString().equals(status)) {
+                    statusSpinner.setSelection(i);
+                    break;
+                }
             }
         }
-        return 0;
+
+        dialogView.findViewById(R.id.cancelButton).setOnClickListener(v -> dialog.dismiss());
+
+        dialogView.findViewById(R.id.saveButton).setOnClickListener(v -> {
+            // Validate inputs
+            if (codeInput.getText().toString().trim().isEmpty() ||
+                    addressInput.getText().toString().trim().isEmpty() ||
+                    panelSizeInput.getText().toString().trim().isEmpty() ||
+                    priceInput.getText().toString().trim().isEmpty() ||
+                    latitudeInput.getText().toString().trim().isEmpty() ||
+                    longitudeInput.getText().toString().trim().isEmpty()) {
+
+                Toast.makeText(requireContext(), "Vui lòng điền đầy đủ thông tin", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            try {
+                // Get values
+                RentalLocationRequest request = new RentalLocationRequest();
+                request.setCode(codeInput.getText().toString().trim());
+                request.setAddress(addressInput.getText().toString().trim());
+                request.setDescription(descriptionInput.getText().toString().trim());
+                request.setPanelSize(panelSizeInput.getText().toString().trim());
+                request.setPrice(Double.parseDouble(priceInput.getText().toString().trim()));
+                request.setLatitude(Double.parseDouble(latitudeInput.getText().toString().trim()));
+                request.setLongitude(Double.parseDouble(longitudeInput.getText().toString().trim()));
+                request.setStatus(statusSpinner.getSelectedItem().toString());
+
+                // Get date from DatePicker
+                Calendar calendar = Calendar.getInstance();
+                calendar.set(
+                        datePicker.getYear(),
+                        datePicker.getMonth(),
+                        datePicker.getDayOfMonth()
+                );
+                request.setAvailableDate(calendar.getTime());
+
+                if (location == null) {
+                    // Create new
+                    viewModel.createRentalLocation(request);
+                } else {
+                    // Update existing
+                    viewModel.updateRentalLocation(location.getId(), request);
+                }
+
+                dialog.dismiss();
+
+            } catch (NumberFormatException e) {
+                Toast.makeText(requireContext(), "Định dạng số không hợp lệ", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        dialog.show();
     }
 
     @Override

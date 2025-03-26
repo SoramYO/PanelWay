@@ -113,10 +113,24 @@
         android:name="com.minhtnn.panelway.ui.profile.ProfileFragment"
         android:label="Profile"
         tools:layout="@layout/fragment_profile">
-        
+        <action
+            android:id="@+id/action_profileFragment_to_adSpaceManagementFragment"
+            app:destination="@id/adSpaceManagementFragment" />
         <action
             android:id="@+id/action_profile_to_login"
             app:destination="@id/loginFragment" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/adSpaceManagementFragment"
+        android:name="com.minhtnn.panelway.ui.management.AdSpaceManagementFragment"
+        android:label="Ad Space Management"
+        tools:layout="@layout/fragment_ad_space_management">
+
+        <action
+            android:id="@+id/action_adSpaceManagementFragment_to_homeFragment"
+            app:destination="@id/homeFragment" />
     </fragment>
 
     <fragment

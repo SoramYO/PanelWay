@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">PanelWay</string>
+    <string-array name="rental_location_statuses">
+        <item>Available</item>
+        <item>Occupied</item>
+        <item>Pending</item>
+    </string-array>
 </resources>

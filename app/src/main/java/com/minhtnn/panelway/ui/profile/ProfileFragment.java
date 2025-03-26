@@ -37,6 +37,12 @@ public class ProfileFragment extends Fragment {
         // Display user information
         binding.userNameText.setText(UserManager.getInstance().getUserName());
         binding.userRoleText.setText(UserManager.getInstance().getUserRole());
+
+        binding.manageAdSpacesCard.setOnClickListener(v -> {
+            // Navigate to Ad Space Management Fragment
+            Navigation.findNavController(requireView())
+                    .navigate(R.id.action_profileFragment_to_adSpaceManagementFragment);
+        });
         
         // Setup logout button
         binding.logoutButton.setOnClickListener(v -> {
