@@ -16,11 +16,11 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 
-public class AppointmentManager {
+public class AppointmentRepository {
     private final AppointmentService apiService;
     private final Context context;
 
-    public AppointmentManager(Context context) {
+    public AppointmentRepository(Context context) {
         this.context = context;
         this.apiService = ApiClient.getClient().create(AppointmentService.class);
     }
@@ -47,29 +47,15 @@ public class AppointmentManager {
             }, timeUntilReminder);
         }
     }
-    
-    public Single<List<Appointment>> getAppointments(String status, String userId, String role) {
-        return apiService.getAppointments(status, userId, role)
+
+    public Single<List<Appointment>> getAccountAppointments(String accountId, String role, String bookDate) {
+        return apiService.getAccountAppointments(accountId, role, bookDate)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
     }
+
     
-    public Single<Appointment> confirmAppointment(String appointmentId) {
-        return apiService.confirmAppointment(appointmentId)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
-    }
+
     
-    public Single<Appointment> rejectAppointment(String appointmentId, String reason) {
-        RejectAppointmentRequest request = new RejectAppointmentRequest(reason);
-        return apiService.rejectAppointment(appointmentId, request)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
-    }
-    
-    public Single<Appointment> cancelAppointment(String appointmentId) {
-        return apiService.cancelAppointment(appointmentId)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
-    }
+
 }

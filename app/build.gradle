@@ -44,18 +44,20 @@ dependencies {
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
-    implementation "androidx.navigation:navigation-fragment-ktx:2.7.7"
-    implementation "androidx.navigation:navigation-ui-ktx:2.7.7"
-    implementation 'com.github.bumptech.glide:okhttp3-integration:4.16.0'
-    implementation 'com.google.firebase:firebase-auth:22.1.2'
-    implementation 'com.google.firebase:firebase-firestore:24.10.0'
-    implementation 'com.google.firebase:firebase-messaging:23.3.1'
-    implementation 'com.google.firebase:firebase-storage:20.3.0'
-    implementation 'com.google.android.gms:play-services-maps:18.2.0'
-    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
-    implementation 'com.squareup.retrofit2:adapter-rxjava3:2.9.0'
-    implementation 'io.reactivex.rxjava3:rxjava:3.1.5'
-    implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
-    implementation 'com.squareup.okhttp3:logging-interceptor:4.9.3'
+    implementation libs.navigation.fragment.ktx
+    implementation libs.navigation.ui.ktx
+    implementation libs.okhttp3.integration
+    implementation libs.firebase.auth
+    implementation libs.firebase.firestore
+    implementation libs.firebase.messaging
+    implementation libs.firebase.storage
+    implementation libs.play.services.maps
+    implementation libs.retrofit
+    implementation libs.converter.gson
+    implementation libs.adapter.rxjava3
+    implementation libs.rxjava
+    implementation libs.rxandroid
+    implementation libs.logging.interceptor
+    implementation libs.play.services.maps
+    implementation libs.play.services.location
 }

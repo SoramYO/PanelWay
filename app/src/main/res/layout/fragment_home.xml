@@ -8,13 +8,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:title="PanelWay" />
-
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/filterChipGroup"
             android:layout_width="match_parent"

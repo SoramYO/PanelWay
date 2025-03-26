@@ -10,6 +10,7 @@ import com.minhtnn.panelway.api.services.AuthService;
 import com.minhtnn.panelway.models.request.LoginRequest;
 import com.minhtnn.panelway.models.response.AuthResponse;
 import com.minhtnn.panelway.utils.TokenManager;
+import com.minhtnn.panelway.utils.UserManager;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
@@ -40,21 +41,25 @@ public class LoginViewModel extends ViewModel {
         );
     }
     
-    private void handleLoginSuccess(AuthResponse response) {
-        isLoading.setValue(false);
-        if (response.isSuccess()) {
-            // Save the authentication token
-            TokenManager.getInstance().saveToken(response.getJwtToken());
-            
-            // Save user info if needed
-            if (response.getAccountResponse() != null) {
-                // You could save user info to shared preferences or a local database
+        private void handleLoginSuccess(AuthResponse response) {
+            isLoading.setValue(false);
+            if (response.isSuccess()) {
+                // Save the authentication token
+                TokenManager.getInstance().saveToken(response.getJwtToken());
+                
+                // Save user info
+                if (response.getAccountResponse() != null) {
+                    UserManager.getInstance().saveUserInfo(
+                        response.getAccountResponse().getId(),
+                        response.getAccountResponse().getRole(),
+                        response.getAccountResponse().getFullName()
+                    );
+                }
+                loginSuccess.setValue(true);
+            } else {
+                errorMessage.setValue(response.getMessage());
             }
-            loginSuccess.setValue(true);
-        } else {
-            errorMessage.setValue(response.getMessage());
         }
-    }
     
     private void handleError(Throwable error) {
         isLoading.setValue(false);

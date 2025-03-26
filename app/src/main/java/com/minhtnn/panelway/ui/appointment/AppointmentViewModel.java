@@ -1,5 +1,7 @@
 package com.minhtnn.panelway.ui.appointment;
 
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -10,9 +12,12 @@ import com.minhtnn.panelway.api.services.AppointmentService;
 import com.minhtnn.panelway.models.Appointment;
 import com.minhtnn.panelway.utils.ErrorHandler;
 import com.minhtnn.panelway.models.request.CreateAppointmentRequest;
+import com.minhtnn.panelway.utils.UserManager;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Calendar;
+import java.util.Locale;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
@@ -35,68 +40,99 @@ public class AppointmentViewModel extends ViewModel {
         this.advertisementId = adId;
     }
 
-    public void checkAvailability(Date date) {
-        if (date == null) return;
+public void checkAvailability(Date date) {
+    if (date == null) return;
+    
+    // Get user ID and role from UserManager
+    String accountId = UserManager.getInstance().getUserId();
+    String role = UserManager.getInstance().getUserRole();
+    
+    // Log the values for debugging
+    Log.d("AppointmentViewModel", "Using accountId: " + accountId);
+    Log.d("AppointmentViewModel", "Using role: " + role);
+    
+    if (accountId.isEmpty()) {
+        error.setValue("User not logged in");
+        return;
+    }
+    
+    // Format date for API request
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault());
+    String bookDate = dateFormat.format(date);
+    
+    disposables.add(
+        appointmentService.getAccountAppointments(accountId, role, bookDate)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                appointments -> {
+                    // Log successful response
+                    Log.d("AppointmentViewModel", "Received " + appointments.size() + " appointments");
+                    
+                    int count = 0;
+                    for (Appointment appointment : appointments) {
+                        if (appointment.getRentalLocationId().equals(advertisementId)) {
+                            count++;
+                        }
+                    }
+                    pendingAppointments.setValue(count);
+                    bookingEnabled.setValue(count < 5);
+                },
+                throwable -> {
+                    // Log error details
+                    Log.e("AppointmentViewModel", "Error fetching appointments", throwable);
+                    error.setValue(ErrorHandler.getErrorMessage(throwable));
+                }
+            )
+    );
+}
 
+public void bookAppointment(Date date, String time) {
+    try {
+        // Get user information
+        String accountId = UserManager.getInstance().getUserId();
+        
+        if (accountId.isEmpty()) {
+            error.setValue("User not logged in");
+            return;
+        }
+        
+        // Parse time and combine with date
+        String[] timeParts = time.split(":");
+        int hour = Integer.parseInt(timeParts[0]);
+        int minute = Integer.parseInt(timeParts[1]);
+        
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.set(Calendar.HOUR_OF_DAY, hour);
+        calendar.set(Calendar.MINUTE, minute);
+        
+        CreateAppointmentRequest request = new CreateAppointmentRequest();
+        request.setBookingDate(calendar.getTime());
+        request.setRentalLocationId(advertisementId);
+        request.setAdContentId(advertisementId); // This might need to be different
+        request.setPriority(0);
+        
+        // Generate a random code
+        String code = "APPT-" + System.currentTimeMillis() % 10000;
+        request.setCode(code);
+        
+        // Set place from user's info
+        request.setPlace(UserManager.getInstance().getUserName() + "'s location");
+        
         disposables.add(
-            appointmentService.getAppointments("pending", null, null)
+            appointmentService.createAppointment(request)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                    appointments -> {
-                        int count = 0;
-                        for (Appointment appointment : appointments) {
-                            if (appointment.getRentalLocationId().equals(advertisementId)) {
-                                count++;
-                            }
-                        }
-                        pendingAppointments.setValue(count);
-                        bookingEnabled.setValue(count < 5);
-                    },
+                    appointment -> bookingResult.setValue(true),
                     throwable -> error.setValue(ErrorHandler.getErrorMessage(throwable))
                 )
         );
+    } catch (Exception e) {
+        error.setValue("Failed to book appointment: " + e.getMessage());
     }
-
-    public void bookAppointment(Date date, String time) {
-        try {
-            // Parse time and combine with date
-            String[] timeParts = time.split(":");
-            int hour = Integer.parseInt(timeParts[0]);
-            int minute = Integer.parseInt(timeParts[1]);
-            
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(date);
-            calendar.set(Calendar.HOUR_OF_DAY, hour);
-            calendar.set(Calendar.MINUTE, minute);
-            
-            CreateAppointmentRequest request = new CreateAppointmentRequest();
-            request.setBookingDate(calendar.getTime());
-            request.setRentalLocationId(advertisementId);
-            request.setAdContentId(advertisementId); // This might need to be different
-            request.setPriority(0);
-            
-            // Generate a random code
-            String code = "APPT-" + System.currentTimeMillis() % 10000;
-            request.setCode(code);
-            
-            // Set place from user's info or default to "User location"
-            request.setPlace("User location");
-            
-            disposables.add(
-                appointmentService.createAppointment(request)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                        appointment -> bookingResult.setValue(true),
-                        throwable -> error.setValue(ErrorHandler.getErrorMessage(throwable))
-                    )
-            );
-        } catch (Exception e) {
-            error.setValue("Failed to book appointment: " + e.getMessage());
-        }
-    }
-
+}
     public LiveData<Integer> getPendingAppointments() {
         return pendingAppointments;
     }

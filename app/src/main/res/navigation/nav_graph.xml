@@ -18,7 +18,18 @@
                 android:name="adId"
                 app:argType="string" />
         </action>
+
     </fragment>
+
+        <fragment
+        android:id="@+id/appointmentManagementFragment"
+        android:name="com.minhtnn.panelway.ui.appointment.AppointmentManagementFragment"
+        android:label="Appointments"
+        tools:layout="@layout/fragment_appointment_management">
+            <action
+                android:id="@+id/action_appointmentManagementFragment_to_homeFragment"
+                app:destination="@id/homeFragment" />
+        </fragment>
 
     <fragment
         android:id="@+id/adDetailsFragment"
@@ -122,5 +133,27 @@
                 app:argType="string" />
         </action>
     </fragment>
+        <action
+            android:id="@+id/action_global_homeFragment"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/homeFragment"
+            app:popUpToInclusive="true" />
 
+        <action
+            android:id="@+id/action_global_mapFragment"
+            app:destination="@id/mapFragment"
+            app:popUpTo="@id/mapFragment"
+            app:popUpToInclusive="true" />
+
+        <action
+            android:id="@+id/action_global_appointmentManagementFragment"
+            app:destination="@id/appointmentManagementFragment"
+            app:popUpTo="@id/appointmentManagementFragment"
+            app:popUpToInclusive="true" />
+
+        <action
+            android:id="@+id/action_global_profileFragment"
+            app:destination="@id/profileFragment"
+            app:popUpTo="@id/profileFragment"
+            app:popUpToInclusive="true" />
 </navigation>
