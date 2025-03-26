@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    app:startDestination="@id/loginFragment"
+    android:id="@+id/nav_graph">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.minhtnn.panelway.ui.home.HomeFragment"
+        android:label="Home"
+        tools:layout="@layout/fragment_home">
+        
+        <action
+            android:id="@+id/action_home_to_details"
+            app:destination="@id/adDetailsFragment">
+            <argument
+                android:name="adId"
+                app:argType="string" />
+        </action>
+    </fragment>
+
+    <fragment
+        android:id="@+id/adDetailsFragment"
+        android:name="com.minhtnn.panelway.ui.advertisement.AdDetailsFragment"
+        android:label="Ad Details"
+        tools:layout="@layout/fragment_ad_details">
+
+        <argument
+            android:name="adId"
+            app:argType="string" />
+
+        <action
+            android:id="@+id/actionDetailsToAppointment"
+            app:destination="@id/appointmentFragment">
+            <argument
+                android:name="adId"
+                app:argType="string" />
+        </action>
+    </fragment>
+
+    <fragment
+        android:id="@+id/appointmentFragment"
+        android:name="com.minhtnn.panelway.ui.appointment.AppointmentFragment"
+        android:label="Book Appointment"
+        tools:layout="@layout/fragment_appointment">
+
+        <argument
+            android:name="adId"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/appointmentConfirmationFragment"
+        android:name="com.minhtnn.panelway.ui.appointment.AppointmentConfirmationFragment"
+        android:label="Appointment Confirmation"
+        tools:layout="@layout/fragment_appointment_confirmation">
+
+        <argument
+            android:name="appointmentId"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.minhtnn.panelway.ui.auth.LoginFragment"
+        android:label="Login"
+        tools:layout="@layout/fragment_login">
+        
+        <action
+            android:id="@+id/action_login_to_register"
+            app:destination="@id/registerFragment" />
+        <action
+            android:id="@+id/action_login_to_home"
+            app:destination="@id/homeFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/registerFragment"
+        android:name="com.minhtnn.panelway.ui.auth.RegisterFragment"
+        android:label="Register"
+        tools:layout="@layout/fragment_register">
+        
+        <action
+            android:id="@+id/action_register_to_otpVerification"
+            app:destination="@id/otpVerificationFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/otpVerificationFragment"
+        android:name="com.minhtnn.panelway.ui.auth.OtpVerificationFragment"
+        android:label="OTP Verification"
+        tools:layout="@layout/fragment_otp_verification">
+
+        <action
+            android:id="@+id/action_otpVerification_to_home"
+            app:destination="@id/homeFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.minhtnn.panelway.ui.profile.ProfileFragment"
+        android:label="Profile"
+        tools:layout="@layout/fragment_profile">
+        
+        <action
+            android:id="@+id/action_profile_to_login"
+            app:destination="@id/loginFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/mapFragment"
+        android:name="com.minhtnn.panelway.ui.map.MapFragment"
+        android:label="Map"
+        tools:layout="@layout/fragment_map">
+
+        <action
+            android:id="@+id/action_map_to_details"
+            app:destination="@id/adDetailsFragment">
+            <argument
+                android:name="adId"
+                app:argType="string" />
+        </action>
+    </fragment>
+
+</navigation>

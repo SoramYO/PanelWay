@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "497560114855",
+    "project_id": "capstoneproject-b5349",
+    "storage_bucket": "capstoneproject-b5349.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:497560114855:android:0009ba29b4dfbb4c50ed82",
+        "android_client_info": {
+          "package_name": "com.minhtnn.panelway"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "497560114855-op3ua9tfc8k0hpam53m2jlv2nj60i03o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCD0I2VrpXOmqrrp6_pdDWCM0oPRJoClhA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "497560114855-op3ua9tfc8k0hpam53m2jlv2nj60i03o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
