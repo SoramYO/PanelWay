@@ -9,15 +9,15 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
 import com.minhtnn.panelway.R;
 import com.minhtnn.panelway.databinding.FragmentLoginBinding;
-import com.google.firebase.auth.FirebaseAuth;
 
 public class LoginFragment extends Fragment {
     private FragmentLoginBinding binding;
-    private FirebaseAuth auth;
+    private LoginViewModel viewModel;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -28,31 +28,47 @@ public class LoginFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        auth = FirebaseAuth.getInstance();
+        viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
+        setupObservers();
+        setupListeners();
+    }
+
+    private void setupObservers() {
+        viewModel.getLoginSuccess().observe(getViewLifecycleOwner(), success -> {
+            if (success) {
+                Navigation.findNavController(requireView()).navigate(R.id.action_login_to_home);
+            }
+        });
+
+        viewModel.getErrorMessage().observe(getViewLifecycleOwner(), error -> {
+            if (error != null && !error.isEmpty()) {
+                Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
+            }
+        });
+        
+        viewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            binding.loginButton.setEnabled(!isLoading);
+            binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+        });
+    }
+
+    private void setupListeners() {
         binding.loginButton.setOnClickListener(v -> attemptLogin());
-        binding.registerLink.setOnClickListener(v ->
-                Navigation.findNavController(v).navigate(R.id.action_login_to_register));
+        binding.registerLink.setOnClickListener(v -> 
+            Navigation.findNavController(v).navigate(R.id.action_login_to_register));
     }
 
     private void attemptLogin() {
-        String email = binding.emailInput.getText().toString();
-        String password = binding.passwordInput.getText().toString();
+        String email = binding.emailInput.getText().toString().trim();
+        String password = binding.passwordInput.getText().toString().trim();
 
         if (email.isEmpty() || password.isEmpty()) {
             Toast.makeText(getContext(), "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        auth.signInWithEmailAndPassword(email, password)
-                .addOnSuccessListener(authResult -> {
-                    Navigation.findNavController(requireView())
-                            .navigate(R.id.action_login_to_home);
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Login failed: " + e.getMessage(),
-                            Toast.LENGTH_SHORT).show();
-                });
+        viewModel.login(email, password);
     }
 
     @Override

@@ -12,6 +12,7 @@ import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.minhtnn.panelway.utils.TokenManager;
 
 public class MainActivity extends AppCompatActivity {
     private NavController navController;
@@ -20,6 +21,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        TokenManager.init(this);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 

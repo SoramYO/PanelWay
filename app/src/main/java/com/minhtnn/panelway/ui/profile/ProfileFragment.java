@@ -66,7 +66,7 @@ public class ProfileFragment extends Fragment {
                 return;
             }
 
-            viewModel.updateProfile(name, email, phone);
+
         });
 
         binding.logoutButton.setOnClickListener(v -> {
@@ -93,9 +93,9 @@ public class ProfileFragment extends Fragment {
     }
 
     private void updateUI(User user) {
-        binding.nameInput.setText(user.getName());
+        binding.nameInput.setText(user.getFullName());
         binding.emailInput.setText(user.getEmail());
-        binding.phoneInput.setText(user.getPhone());
+        binding.phoneInput.setText(user.getPhoneNumber());
         binding.roleChip.setText(user.getRole());
 
         if (user.getProfileImage() != null) {

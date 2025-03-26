@@ -6,41 +6,46 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.minhtnn.panelway.api.ApiClient;
+import com.minhtnn.panelway.api.services.UserService;
 import com.minhtnn.panelway.models.User;
+
+import com.minhtnn.panelway.utils.ErrorHandler;
+import com.minhtnn.panelway.utils.TokenManager;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
-import java.util.HashMap;
-import java.util.Map;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+
 import java.util.UUID;
 
 public class ProfileViewModel extends ViewModel {
     private final FirebaseAuth auth = FirebaseAuth.getInstance();
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseStorage storage = FirebaseStorage.getInstance();
+    private final UserService userService;
     private final MutableLiveData<User> userData = new MutableLiveData<>();
     private final MutableLiveData<String> error = new MutableLiveData<>();
     private final MutableLiveData<Boolean> saveSuccess = new MutableLiveData<>();
+    private final CompositeDisposable disposables = new CompositeDisposable();
 
     public ProfileViewModel() {
+        userService = ApiClient.getClient().create(UserService.class);
         loadUserData();
     }
 
     private void loadUserData() {
         String userId = auth.getCurrentUser().getUid();
-        db.collection("users").document(userId)
-                .addSnapshotListener((documentSnapshot, e) -> {
-                    if (e != null) {
-                        error.setValue("Failed to load profile: " + e.getMessage());
-                        return;
-                    }
-                    if (documentSnapshot != null && documentSnapshot.exists()) {
-                        User user = documentSnapshot.toObject(User.class);
-                        userData.setValue(user);
-                    }
-                });
+        
+        disposables.add(userService.getUserById(userId)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                user -> userData.setValue(user),
+                throwable -> error.setValue(ErrorHandler.getErrorMessage(throwable))
+            ));
     }
 
     public void uploadProfileImage(Uri imageUri) {
@@ -48,43 +53,19 @@ public class ProfileViewModel extends ViewModel {
         StorageReference ref = storage.getReference().child("profiles/" + imageName);
 
         ref.putFile(imageUri)
-                .addOnSuccessListener(taskSnapshot -> {
-                    ref.getDownloadUrl().addOnSuccessListener(uri -> {
-                        updateProfileImage(uri.toString());
-                    });
-                })
-                .addOnFailureListener(e -> {
-                    error.setValue("Failed to upload image: " + e.getMessage());
+            .addOnSuccessListener(taskSnapshot -> {
+                ref.getDownloadUrl().addOnSuccessListener(uri -> {
+
                 });
+            })
+            .addOnFailureListener(e -> {
+                error.setValue("Failed to upload image: " + e.getMessage());
+            });
     }
 
-    private void updateProfileImage(String imageUrl) {
-        String userId = auth.getCurrentUser().getUid();
-        db.collection("users").document(userId)
-                .update("profileImage", imageUrl)
-                .addOnFailureListener(e -> {
-                    error.setValue("Failed to update profile image: " + e.getMessage());
-                });
-    }
-
-    public void updateProfile(String name, String email, String phone) {
-        String userId = auth.getCurrentUser().getUid();
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("name", name);
-        updates.put("email", email);
-        updates.put("phone", phone);
-
-        db.collection("users").document(userId)
-                .update(updates)
-                .addOnSuccessListener(aVoid -> {
-                    saveSuccess.setValue(true);
-                })
-                .addOnFailureListener(e -> {
-                    error.setValue("Failed to update profile: " + e.getMessage());
-                });
-    }
 
     public void logout() {
+        TokenManager.getInstance().clearToken();
         auth.signOut();
     }
 
@@ -98,5 +79,11 @@ public class ProfileViewModel extends ViewModel {
 
     public LiveData<Boolean> getSaveSuccess() {
         return saveSuccess;
+    }
+    
+    @Override
+    protected void onCleared() {
+        disposables.clear();
+        super.onCleared();
     }
 }

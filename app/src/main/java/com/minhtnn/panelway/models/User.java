@@ -1,15 +1,23 @@
 package com.minhtnn.panelway.models;
 
+import java.util.Date;
+
 public class User {
     private String id;
-    private String name;
+    private String fullName;
+    private String gender;
     private String email;
-    private String phone;
-    private String role;
-    private String profileImage;
+    private String phoneNumber;
+    private String userName;
+    private Date createdAt;
+    private Date updatedAt;
+    private String status;
+    private boolean verificationStatus;
+    private String profileImage; // For local use, not in API
 
-    // Required empty constructor for Firestore
-    public User() {}
+    // Empty constructor required for Firebase
+    public User() {
+    }
 
     public String getId() {
         return id;
@@ -19,12 +27,29 @@ public class User {
         this.id = id;
     }
 
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    // For compatibility with existing code
     public String getName() {
-        return name;
+        return fullName;
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.fullName = name;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
     }
 
     public String getEmail() {
@@ -35,20 +60,61 @@ public class User {
         this.email = email;
     }
 
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    // For compatibility with existing code
     public String getPhone() {
-        return phone;
+        return phoneNumber;
     }
 
     public void setPhone(String phone) {
-        this.phone = phone;
+        this.phoneNumber = phone;
     }
 
-    public String getRole() {
-        return role;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setRole(String role) {
-        this.role = role;
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public boolean isVerificationStatus() {
+        return verificationStatus;
+    }
+
+    public void setVerificationStatus(boolean verificationStatus) {
+        this.verificationStatus = verificationStatus;
     }
 
     public String getProfileImage() {
@@ -57,5 +123,10 @@ public class User {
 
     public void setProfileImage(String profileImage) {
         this.profileImage = profileImage;
+    }
+
+    // For display in profile fragment
+    public String getRole() {
+        return status != null ? status : "client";
     }
 }

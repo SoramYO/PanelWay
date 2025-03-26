@@ -4,16 +4,21 @@ import java.util.Date;
 
 public class Appointment {
     private String id;
-    private String userId;
-    private String ownerId;
+    private String code;
+    private String spaceId;
     private String spaceTitle;
     private String location;
-    private Date date;
+    private String clientId;
+    private String ownerId;
+    private Date appointmentTime;
+    private Date bookingDate;
     private String status;
+    private String notes;
     private boolean confirmed;
-    private Date createdAt;
-    private String description;
-    private double price;
+    private String place;
+    private int priority;
+    private String adContentId;
+    private String rentalLocationId;
 
     // Required empty constructor for Firestore
     public Appointment() {}
@@ -26,20 +31,20 @@ public class Appointment {
         this.id = id;
     }
 
-    public String getUserId() {
-        return userId;
+    public String getCode() {
+        return code;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setCode(String code) {
+        this.code = code;
     }
 
-    public String getOwnerId() {
-        return ownerId;
+    public String getSpaceId() {
+        return spaceId;
     }
 
-    public void setOwnerId(String ownerId) {
-        this.ownerId = ownerId;
+    public void setSpaceId(String spaceId) {
+        this.spaceId = spaceId;
     }
 
     public String getSpaceTitle() {
@@ -58,12 +63,37 @@ public class Appointment {
         this.location = location;
     }
 
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    public Date getAppointmentTime() {
+        return appointmentTime;
+    }
+
+    public void setAppointmentTime(Date appointmentTime) {
+        this.appointmentTime = appointmentTime;
+    }
+
+    // For compatibility with existing code
     public Date getDate() {
-        return date;
+        return appointmentTime;
     }
 
     public void setDate(Date date) {
-        this.date = date;
+        this.appointmentTime = date;
+    }
+
+    public Date getBookingDate() {
+        return bookingDate;
+    }
+
+    public void setBookingDate(Date bookingDate) {
+        this.bookingDate = bookingDate;
     }
 
     public String getStatus() {
@@ -74,6 +104,22 @@ public class Appointment {
         this.status = status;
     }
 
+    public String getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(String ownerId) {
+        this.ownerId = ownerId;
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+
     public boolean isConfirmed() {
         return confirmed;
     }
@@ -82,27 +128,35 @@ public class Appointment {
         this.confirmed = confirmed;
     }
 
-    public Date getCreatedAt() {
-        return createdAt;
+    public String getPlace() {
+        return place;
     }
 
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
+    public void setPlace(String place) {
+        this.place = place;
     }
 
-    public String getDescription() {
-        return description;
+    public int getPriority() {
+        return priority;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setPriority(int priority) {
+        this.priority = priority;
     }
 
-    public double getPrice() {
-        return price;
+    public String getAdContentId() {
+        return adContentId;
     }
 
-    public void setPrice(double price) {
-        this.price = price;
+    public void setAdContentId(String adContentId) {
+        this.adContentId = adContentId;
+    }
+
+    public String getRentalLocationId() {
+        return rentalLocationId;
+    }
+
+    public void setRentalLocationId(String rentalLocationId) {
+        this.rentalLocationId = rentalLocationId;
     }
 }
