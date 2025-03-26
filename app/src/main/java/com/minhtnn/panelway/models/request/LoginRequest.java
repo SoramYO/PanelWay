@@ -1,13 +1,11 @@
 package com.minhtnn.panelway.models.request;
 
-
 public class LoginRequest {
     private String phoneNumber;
     private String password;
-
     private String role;
 
-    public LoginRequest(String phoneNumber, String password) {
+    public LoginRequest(String phoneNumber, String password, String role) {
         this.phoneNumber = phoneNumber;
         this.password = password;
         this.role = role;

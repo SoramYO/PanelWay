@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.minhtnn.panelway.api.ApiClient;
+import com.minhtnn.panelway.api.AuthRepository;
 import com.minhtnn.panelway.api.services.AuthService;
 import com.minhtnn.panelway.models.request.LoginRequest;
 import com.minhtnn.panelway.models.response.AuthResponse;
@@ -15,22 +16,21 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class LoginViewModel extends ViewModel {
-    private final AuthService authService;
+    private final AuthRepository authRepository;
     private final MutableLiveData<Boolean> loginSuccess = new MutableLiveData<>();
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
     private final CompositeDisposable disposables = new CompositeDisposable();
 
     public LoginViewModel() {
-        authService = ApiClient.getClient().create(AuthService.class);
+        authRepository = new AuthRepository();
     }
 
-    public void login(String phoneNumber, String password) {
+    public void login(String phoneNumber, String password, String role) {
         isLoading.setValue(true);
-        LoginRequest request = new LoginRequest(phoneNumber, password);
-
+        
         disposables.add(
-            authService.login(request)
+            authRepository.login(phoneNumber, password, role)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
@@ -44,9 +44,10 @@ public class LoginViewModel extends ViewModel {
         isLoading.setValue(false);
         if (response.isSuccess()) {
             // Save the authentication token
-            TokenManager.getInstance().saveToken(response.getToken());
+            TokenManager.getInstance().saveToken(response.getJwtToken());
+            
             // Save user info if needed
-            if (response.getUser() != null) {
+            if (response.getAccountResponse() != null) {
                 // You could save user info to shared preferences or a local database
             }
             loginSuccess.setValue(true);

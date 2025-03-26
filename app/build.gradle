@@ -7,12 +7,12 @@ plugins {
 android {
     namespace 'com.minhtnn.panelway'
     compileSdk 35
-    viewBinding {
-        enabled = true
+    buildFeatures {
+        viewBinding true
+        dataBinding true
+        buildConfig true
     }
-    dataBinding {
-        enabled = true
-    }
+
     defaultConfig {
         applicationId "com.minhtnn.panelway"
         minSdk 35
@@ -57,4 +57,5 @@ dependencies {
     implementation 'com.squareup.retrofit2:adapter-rxjava3:2.9.0'
     implementation 'io.reactivex.rxjava3:rxjava:3.1.5'
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.9.3'
 }

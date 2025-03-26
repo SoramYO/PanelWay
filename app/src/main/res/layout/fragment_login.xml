@@ -18,11 +18,11 @@
         android:layout_marginTop="32dp">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/emailInput"
+            android:id="@+id/phoneInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Email"
-            android:inputType="textEmailAddress" />
+            android:hint="Phone Number"
+            android:inputType="phone" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -36,6 +36,18 @@
             android:layout_height="wrap_content"
             android:hint="Password"
             android:inputType="textPassword" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp">
+
+        <Spinner
+            android:id="@+id/roleSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Role" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <Button
@@ -53,6 +65,7 @@
         android:layout_marginTop="16dp"
         android:text="Don't have an account? Register"
         android:textColor="@color/design_default_color_primary" />
+    
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"

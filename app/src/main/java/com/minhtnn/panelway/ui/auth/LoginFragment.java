@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -30,8 +31,18 @@ public class LoginFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
+        setupRoleSpinner();
         setupObservers();
         setupListeners();
+    }
+    
+    private void setupRoleSpinner() {
+        String[] roles = new String[]{"SpaceProvider", "client"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                requireContext(), 
+                android.R.layout.simple_spinner_dropdown_item,
+                roles);
+        binding.roleSpinner.setAdapter(adapter);
     }
 
     private void setupObservers() {
@@ -60,15 +71,16 @@ public class LoginFragment extends Fragment {
     }
 
     private void attemptLogin() {
-        String email = binding.emailInput.getText().toString().trim();
+        String phoneNumber = binding.phoneInput.getText().toString().trim();
         String password = binding.passwordInput.getText().toString().trim();
+        String role = binding.roleSpinner.getSelectedItem().toString();
 
-        if (email.isEmpty() || password.isEmpty()) {
+        if (phoneNumber.isEmpty() || password.isEmpty()) {
             Toast.makeText(getContext(), "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        viewModel.login(email, password);
+        viewModel.login(phoneNumber, password, role);
     }
 
     @Override

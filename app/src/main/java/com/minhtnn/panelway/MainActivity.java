@@ -1,6 +1,7 @@
 package com.minhtnn.panelway;
 
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,6 +15,8 @@ import androidx.navigation.fragment.NavHostFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.minhtnn.panelway.utils.TokenManager;
 
+import java.lang.reflect.Field;
+
 public class MainActivity extends AppCompatActivity {
     private NavController navController;
     private FirebaseAuth auth;
@@ -24,6 +27,17 @@ public class MainActivity extends AppCompatActivity {
         TokenManager.init(this);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+
+        if (BuildConfig.DEBUG) {
+            Log.d("API", "Setting maximum log size");
+            try {
+                Field field = Log.class.getDeclaredField("MAX_LOG_LINE_LENGTH");
+                field.setAccessible(true);
+                field.set(null, Integer.MAX_VALUE);
+            } catch (Exception e) {
+                Log.e("API", "Failed to increase log line length", e);
+            }
+        }
 
         // Set up window insets
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
