@@ -37,7 +37,7 @@ public class LoginFragment extends Fragment {
     }
     
     private void setupRoleSpinner() {
-        String[] roles = new String[]{"SpaceProvider", "client"};
+        String[] roles = new String[]{"SpaceProvider", "AdvertisingClient"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 requireContext(), 
                 android.R.layout.simple_spinner_dropdown_item,
