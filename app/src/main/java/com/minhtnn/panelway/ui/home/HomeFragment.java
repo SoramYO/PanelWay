@@ -47,8 +47,8 @@ public class HomeFragment extends Fragment {
     private void setupRecyclerViews() {
 
         AdSpaceAdapter.OnAdSpaceClickListener clickListener = adSpace ->
-            Navigation.findNavController(requireView())
-                .navigate(HomeFragmentDirections.actionHomeToDetails(adSpace.getId()));
+                Navigation.findNavController(requireView())
+                        .navigate(HomeFragmentDirections.actionHomeToDetails(adSpace.getId()));
 
         featuredAdapter = new AdSpaceAdapter(clickListener);
         allSpacesAdapter = new AdSpaceAdapter(clickListener);

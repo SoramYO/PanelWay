@@ -10,20 +10,21 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.minhtnn.panelway.R;
-import com.minhtnn.panelway.adapters.ImagePagerAdapter;
 import com.minhtnn.panelway.databinding.FragmentAdDetailsBinding;
-import com.minhtnn.panelway.models.AdvertisementSpace;
-import com.google.firebase.auth.FirebaseAuth;
+import com.minhtnn.panelway.models.RentalLocation;
 
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 public class AdDetailsFragment extends Fragment {
     private FragmentAdDetailsBinding binding;
     private AdDetailsViewModel viewModel;
-    private ImagePagerAdapter imagePagerAdapter;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -35,7 +36,9 @@ public class AdDetailsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        String adId = AdDetailsFragmentArgs.fromBundle(getArguments()).getAdId();
+        AdDetailsFragmentArgs args = AdDetailsFragmentArgs.fromBundle(getArguments());
+        String adId = args.getAdId();
+
         viewModel = new ViewModelProvider(this).get(AdDetailsViewModel.class);
         viewModel.loadAdDetails(adId);
 
@@ -44,26 +47,29 @@ public class AdDetailsFragment extends Fragment {
     }
 
     private void setupViews() {
-        imagePagerAdapter = new ImagePagerAdapter();
-        binding.imageViewPager.setAdapter(imagePagerAdapter);
+        // Nút đặt thuê
+        binding.bookNowButton.setOnClickListener(v -> {
+            RentalLocation location = viewModel.getRentalLocation().getValue();
+            if (location != null && location.getId() != null && !location.getId().isEmpty()) {
+                // Tạo Bundle để truyền thông tin đến BookAdFragment
+                Bundle bundle = new Bundle();
+                bundle.putString("maQuangCao", location.getId());
+                bundle.putString("diaChi", location.getAddress());
+                bundle.putString("kichThuoc", location.getPanelSize());
+                bundle.putString("gia", String.valueOf(location.getPrice()));
+                bundle.putString("ngayKhaDung", location.getAvailableDate() != null ? location.getAvailableDate().toString() : "");
 
-        binding.toolbar.setNavigationOnClickListener(v ->
-                Navigation.findNavController(requireView()).navigateUp());
-
-        binding.bookButton.setOnClickListener(v -> {
-            if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-                AdDetailsFragmentDirections.ActionDetailsToAppointment action =
-                        AdDetailsFragmentDirections.actionDetailsToAppointment(
-                                viewModel.getAdDetails().getValue().getId());
-                Navigation.findNavController(v).navigate(action);
+                // Điều hướng đến BookAdFragment
+                NavController navController = Navigation.findNavController(requireView());
+                navController.navigate(R.id.action_adDetailsFragment_to_bookAdFragment, bundle);
             } else {
-                Toast.makeText(getContext(), "Please login first", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Invalid rental location ID", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void observeData() {
-        viewModel.getAdDetails().observe(getViewLifecycleOwner(), this::updateUI);
+        viewModel.getRentalLocation().observe(getViewLifecycleOwner(), this::updateUI);
         viewModel.getError().observe(getViewLifecycleOwner(), error -> {
             if (error != null) {
                 Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
@@ -71,25 +77,38 @@ public class AdDetailsFragment extends Fragment {
         });
     }
 
-    private void updateUI(AdvertisementSpace space) {
-        binding.titleText.setText(space.getTitle());
-        binding.priceText.setText(String.format("$%.2f", space.getPrice()));
-        binding.locationText.setText(space.getLocation());
-        binding.descriptionText.setText(space.getDescription());
-        binding.ownerName.setText(space.getOwnerName());
-        binding.ratingBar.setRating(space.getRating());
+    private void updateUI(RentalLocation location) {
+        if (location == null) return;
 
-        imagePagerAdapter.submitList(space.getImages());
+        binding.rentalCodeText.setText(location.getCode() != null ? location.getCode() : "N/A");
+        binding.rentalLocationText.setText(location.getAddress() != null ? location.getAddress() : "No address");
 
-        Glide.with(this)
-                .load(space.getOwnerImage())
-                .circleCrop()
-                .into(binding.ownerImage);
+        double price = location.getPrice();
+        binding.rentalPriceText.setText(price > 0 ?
+                String.format(Locale.getDefault(), "%.1fM", price) : "N/A");
+        binding.rentalSizeText.setText(location.getPanelSize() != null ? location.getPanelSize() : "Unknown size");
 
-        // Hide book button if current user is the owner
-        if (FirebaseAuth.getInstance().getCurrentUser() != null &&
-                FirebaseAuth.getInstance().getCurrentUser().getUid().equals(space.getOwnerId())) {
-            binding.bookButton.setVisibility(View.GONE);
+        // Hiển thị ngày có sẵn
+        if (location.getAvailableDate() != null) {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            binding.rentalAvailableDateText.setText(dateFormat.format(location.getAvailableDate()));
+        } else {
+            binding.rentalAvailableDateText.setText("Not specified");
+        }
+
+        binding.rentalDescriptionText.setText(location.getDescription() != null ? location.getDescription() : "No description available");
+
+        // Load ảnh vào ImageView với placeholder và xử lý lỗi
+        if (location.getRentalLocationImageList() != null && !location.getRentalLocationImageList().isEmpty()) {
+            Glide.with(this)
+                    .load(location.getRentalLocationImageList().get(0))
+                    .apply(new RequestOptions()
+//                            .placeholder(R.drawable.image_placeholder)  // Placeholder khi ảnh chưa tải
+//                            .error(R.drawable.image_error)  // Ảnh lỗi khi không tải được
+                            .centerCrop())
+                    .into(binding.rentalImageView);
+        } else {
+//            binding.rentalImageView.setImageResource(R.drawable.image_placeholder);
         }
     }
 

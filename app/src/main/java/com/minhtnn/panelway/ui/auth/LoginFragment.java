@@ -37,11 +37,11 @@ public class LoginFragment extends Fragment {
         setupObservers();
         setupListeners();
     }
-    
+
     private void setupRoleSpinner() {
         String[] roles = new String[]{"SpaceProvider", "AdvertisingClient"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                requireContext(), 
+                requireContext(),
                 android.R.layout.simple_spinner_dropdown_item,
                 roles);
         binding.roleSpinner.setAdapter(adapter);
@@ -59,7 +59,7 @@ public class LoginFragment extends Fragment {
                 Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
             }
         });
-        
+
         viewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
             binding.loginButton.setEnabled(!isLoading);
             binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
@@ -68,8 +68,8 @@ public class LoginFragment extends Fragment {
 
     private void setupListeners() {
         binding.loginButton.setOnClickListener(v -> attemptLogin());
-        binding.registerLink.setOnClickListener(v -> 
-            Navigation.findNavController(v).navigate(R.id.action_login_to_register));
+        binding.registerLink.setOnClickListener(v ->
+                Navigation.findNavController(v).navigate(R.id.action_login_to_register));
     }
 
     private void attemptLogin() {

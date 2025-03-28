@@ -37,6 +37,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private MapViewModel viewModel;
     private GoogleMap googleMap;
     private AdSpaceAdapter featuredAdapter;
+    private String userId; // Biến để lưu userId
 
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
@@ -75,6 +76,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         featuredAdapter = new AdSpaceAdapter(adSpace -> {
 //             Navigate to details
 //             Uncomment and update navigation as needed
+            Bundle args = getArguments();
+            if (args != null && args.containsKey("userId")) {
+                userId = args.getString("userId");
+            } else {
+                userId = null; // Đảm bảo userId là null nếu không có trong arguments
+            }
              Navigation.findNavController(requireView())
                  .navigate(MapFragmentDirections.actionMapToDetails(adSpace.getId()));
         });
