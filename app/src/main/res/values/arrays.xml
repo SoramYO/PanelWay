@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="ad_content_options">
+        <item>Nội dung quảng cáo của bạn</item>
+        <item>Quảng cáo sản phẩm A</item>
+        <item>Quảng cáo sản phẩm B</item>
+        <item>Quảng cáo sự kiện</item>
+    </string-array>
+</resources>

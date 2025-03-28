@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.minhtnn.panelway.adapters.AdSpaceAdapter;
 import com.minhtnn.panelway.adapters.AdSpaceAdapter.OnAdSpaceClickListener;
+import com.minhtnn.panelway.adapters.AdvertisementCardAdapter;
 import com.minhtnn.panelway.databinding.FragmentHomeBinding;
 import com.google.android.material.chip.Chip;
 
@@ -24,6 +25,8 @@ public class HomeFragment extends Fragment {
     private HomeViewModel viewModel;
     private AdSpaceAdapter featuredAdapter;
     private AdSpaceAdapter allSpacesAdapter;
+
+    private AdvertisementCardAdapter allAdvertisementCardAdapter;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -42,19 +45,26 @@ public class HomeFragment extends Fragment {
     }
 
     private void setupRecyclerViews() {
-        AdSpaceAdapter.OnAdSpaceClickListener clickListener = adSpace -> 
-            Navigation.findNavController(requireView())
-                .navigate(HomeFragmentDirections.actionHomeToDetails(adSpace.getId()));
+
+        AdSpaceAdapter.OnAdSpaceClickListener clickListener = adSpace ->
+                Navigation.findNavController(requireView())
+                        .navigate(HomeFragmentDirections.actionHomeToDetails(adSpace.getId()));
 
         featuredAdapter = new AdSpaceAdapter(clickListener);
         allSpacesAdapter = new AdSpaceAdapter(clickListener);
-        
+
+        AdvertisementCardAdapter.OnAdvertisementClickListener advertisementCardClickListener = advertisementCard ->
+                Navigation.findNavController(requireView())
+                        .navigate(HomeFragmentDirections.actionHomeToDetails(advertisementCard.getId()));
+        allAdvertisementCardAdapter = new AdvertisementCardAdapter(advertisementCardClickListener);
+
         binding.featuredRecyclerView.setLayoutManager(
                 new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         binding.featuredRecyclerView.setAdapter(featuredAdapter);
 
         binding.spacesRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        binding.spacesRecyclerView.setAdapter(allSpacesAdapter);
+//        binding.spacesRecyclerView.setAdapter(allSpacesAdapter);
+        binding.spacesRecyclerView.setAdapter(allAdvertisementCardAdapter);
     }
 
     private void setupFilters() {
@@ -80,6 +90,10 @@ public class HomeFragment extends Fragment {
 
         viewModel.getAllSpaces().observe(getViewLifecycleOwner(), spaces -> {
             allSpacesAdapter.submitList(spaces);
+        });
+
+        viewModel.getRentalLocationsPaging().observe(getViewLifecycleOwner(), rentalLocationsPaging -> {
+            allAdvertisementCardAdapter.submitList(rentalLocationsPaging.getItems());
         });
 
         viewModel.getError().observe(getViewLifecycleOwner(), error -> {

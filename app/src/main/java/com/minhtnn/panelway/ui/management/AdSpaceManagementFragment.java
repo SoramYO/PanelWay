@@ -14,6 +14,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -48,13 +50,13 @@ public class AdSpaceManagementFragment extends Fragment implements RentalLocatio
 
     setupRecyclerView();
     setupTabLayout();
-    setupAddButton();
+//    setupAddButton();
     setupLoadMoreButton();
     observeViewModel();
     }
 
     private void setupLoadMoreButton() {
-    binding.loadMoreButton.setOnClickListener(v -> viewModel.loadMore());
+//    binding.loadMoreButton.setOnClickListener(v -> viewModel.loadMore());
 }
 
     private void setupRecyclerView() {
@@ -100,16 +102,16 @@ public class AdSpaceManagementFragment extends Fragment implements RentalLocatio
         });
     }
 
-    private void setupAddButton() {
-        binding.addButton.setOnClickListener(v -> showAddEditDialog(null));
-    }
+//    private void setupAddButton() {
+//        binding.addButton.setOnClickListener(v -> showAddEditDialog(null));
+//    }
 
     private void observeViewModel() {
         viewModel.getRentalLocations().observe(getViewLifecycleOwner(), locations -> {
             adapter.submitList(locations);
             binding.emptyView.setVisibility(locations.isEmpty() ? View.VISIBLE : View.GONE);
             binding.recyclerView.setVisibility(locations.isEmpty() ? View.GONE : View.VISIBLE);
-            binding.loadMoreButton.setVisibility(locations.isEmpty() ? View.GONE : View.VISIBLE);
+//            binding.loadMoreButton.setVisibility(locations.isEmpty() ? View.GONE : View.VISIBLE);
         });
 
         viewModel.isLoading().observe(getViewLifecycleOwner(), isLoading -> {
@@ -145,32 +147,24 @@ public class AdSpaceManagementFragment extends Fragment implements RentalLocatio
                 .setNegativeButton("Hủy", null)
                 .show();
     }
-
     @Override
     public void onStatusClick(RentalLocation location) {
-        String currentStatus = location.getStatus();
-        String newStatus;
+        // Kiểm tra nếu trạng thái là "Available" thì cho phép đặt quảng cáo
+        if ("Available".equals(location.getStatus())) {
+            // Tạo bundle chứa thông tin quảng cáo
+            Bundle bundle = new Bundle();
+            bundle.putString("maQuangCao", location.getId());
+            bundle.putString("diaChi", location.getAddress());
+            bundle.putString("kichThuoc", location.getPanelSize());
+            bundle.putString("gia", String.valueOf(location.getPrice()));
+            bundle.putString("ngayKhaDung", location.getAvailableDate() != null ? location.getAvailableDate().toString() : "");
 
-        switch (currentStatus) {
-            case "Available":
-                newStatus = "Occupied";
-                break;
-            case "Occupied":
-                newStatus = "Available";
-                break;
-            case "Pending":
-                newStatus = "Available";
-                break;
-            default:
-                newStatus = "Available";
+            // Điều hướng đến BookAdFragment
+            NavController navController = Navigation.findNavController(requireView());
+            navController.navigate(R.id.action_adSpaceManagementFragment_to_bookAdFragment, bundle);
+        } else {
+            Toast.makeText(requireContext(), "Chỉ có thể đặt quảng cáo khi trạng thái là 'Khả dụng'", Toast.LENGTH_SHORT).show();
         }
-
-        new MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Thay đổi trạng thái")
-                .setMessage("Bạn có muốn thay đổi trạng thái từ " + currentStatus + " sang " + newStatus + "?")
-                .setPositiveButton("Xác nhận", (dialog, which) -> viewModel.updateStatus(location.getId(), newStatus))
-                .setNegativeButton("Hủy", null)
-                .show();
     }
 
     private void showAddEditDialog(RentalLocation location) {
