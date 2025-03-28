@@ -1,6 +1,8 @@
 package com.minhtnn.panelway.models;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 public class RentalLocation {
     private String id;
@@ -16,6 +18,16 @@ public class RentalLocation {
     private String status;
     private String spaceProviderId;
     private String managerId;
+
+    private List<RentalLocationImage> rentalLocationImageList;
+
+    public List<RentalLocationImage> getRentalLocationImageList() {
+        return rentalLocationImageList;
+    }
+
+    public void setRentalLocationImageList(List<RentalLocationImage> rentalLocationImageList) {
+        this.rentalLocationImageList = rentalLocationImageList;
+    }
 
     // Constructors
     public RentalLocation() {}
@@ -123,5 +135,20 @@ public class RentalLocation {
 
     public void setManagerId(String managerId) {
         this.managerId = managerId;
+    }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RentalLocation that = (RentalLocation) o;
+        return Objects.equals(getId(), that.getId()) &&
+                Objects.equals(getCode(), that.getCode()) &&
+                Objects.equals(getAddress(), that.getAddress()) &&
+                Objects.equals(getDescription(), that.getDescription());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId(), getCode(), getAddress(), getDescription());
     }
 }
