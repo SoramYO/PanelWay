@@ -30,36 +30,42 @@ public class RegisterFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(RegisterViewModel.class);
-        
+
         setupGenderSpinner();
         setupRoleSpinner();
         setupObservers();
         setupListeners();
     }
-    
+
+    // Thiết lập Spinner cho Giới tính
     private void setupGenderSpinner() {
         String[] genders = new String[]{"Male", "Female", "Other"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                requireContext(), 
+                requireContext(),
                 android.R.layout.simple_spinner_dropdown_item,
                 genders);
         binding.genderSpinner.setAdapter(adapter);
     }
-    
+
+    // Thiết lập Spinner cho Vai trò
     private void setupRoleSpinner() {
         String[] roles = new String[]{"client", "owner"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                requireContext(), 
+                requireContext(),
                 android.R.layout.simple_spinner_dropdown_item,
                 roles);
         binding.roleSpinner.setAdapter(adapter);
     }
-    
+
+    // Theo dõi trạng thái đăng ký từ ViewModel
     private void setupObservers() {
         viewModel.getRegisterSuccess().observe(getViewLifecycleOwner(), success -> {
             if (success) {
+                Toast.makeText(getContext(), "Registration successful", Toast.LENGTH_SHORT).show();
+
+                // ✅ Điều hướng tới LoginFragment thay vì HomeFragment
                 Navigation.findNavController(requireView())
-                        .navigate(R.id.action_register_to_otpVerification);
+                        .navigate(R.id.action_register_to_login);
             }
         });
 
@@ -75,10 +81,12 @@ public class RegisterFragment extends Fragment {
         });
     }
 
+    // Đặt sự kiện lắng nghe cho nút Đăng ký
     private void setupListeners() {
         binding.registerButton.setOnClickListener(v -> attemptRegister());
     }
 
+    // Thực hiện đăng ký
     private void attemptRegister() {
         String email = binding.emailInput.getText().toString().trim();
         String password = binding.passwordInput.getText().toString().trim();
@@ -89,9 +97,9 @@ public class RegisterFragment extends Fragment {
         String gender = binding.genderSpinner.getSelectedItem().toString();
         String role = binding.roleSpinner.getSelectedItem().toString();
 
-        // Validate inputs
-        if (email.isEmpty() || password.isEmpty() || fullName.isEmpty() || 
-            phone.isEmpty() || userName.isEmpty() || ageStr.isEmpty()) {
+        // Kiểm tra dữ liệu đầu vào
+        if (email.isEmpty() || password.isEmpty() || fullName.isEmpty() ||
+                phone.isEmpty() || userName.isEmpty() || ageStr.isEmpty()) {
             Toast.makeText(getContext(), "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -104,6 +112,7 @@ public class RegisterFragment extends Fragment {
             return;
         }
 
+        // Gọi phương thức đăng ký trong ViewModel
         viewModel.register(email, password, fullName, phone, userName, age, gender, role);
     }
 

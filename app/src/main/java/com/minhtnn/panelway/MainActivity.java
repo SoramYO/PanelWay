@@ -102,10 +102,10 @@ public class MainActivity extends AppCompatActivity {
                 navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
                     // Hide bottom navigation for authentication fragments
                     if (destination.getId() == R.id.loginFragment ||
-                            destination.getId() == R.id.registerFragment ||
-                            destination.getId() == R.id.otpVerificationFragment) {
+                            destination.getId() == R.id.registerFragment) {
                         bottomNav.setVisibility(View.GONE);
-                    } else {
+
+                } else {
                         bottomNav.setVisibility(View.VISIBLE);
 
                         // Update selected item based on current destination

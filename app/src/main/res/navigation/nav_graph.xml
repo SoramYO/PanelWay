@@ -2,15 +2,16 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    app:startDestination="@id/loginFragment"
-    android:id="@+id/nav_graph">
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/loginFragment">
 
+    <!-- Home Fragment -->
     <fragment
         android:id="@+id/homeFragment"
         android:name="com.minhtnn.panelway.ui.home.HomeFragment"
         android:label="Home"
         tools:layout="@layout/fragment_home">
-        
+
         <action
             android:id="@+id/action_home_to_details"
             app:destination="@id/adDetailsFragment">
@@ -18,19 +19,21 @@
                 android:name="adId"
                 app:argType="string" />
         </action>
-
     </fragment>
 
-        <fragment
+    <!-- Appointment Management Fragment -->
+    <fragment
         android:id="@+id/appointmentManagementFragment"
         android:name="com.minhtnn.panelway.ui.appointment.AppointmentManagementFragment"
         android:label="Appointments"
         tools:layout="@layout/fragment_appointment_management">
-            <action
-                android:id="@+id/action_appointmentManagementFragment_to_homeFragment"
-                app:destination="@id/homeFragment" />
-        </fragment>
 
+        <action
+            android:id="@+id/action_appointmentManagementFragment_to_homeFragment"
+            app:destination="@id/homeFragment" />
+    </fragment>
+
+    <!-- Ad Details Fragment -->
     <fragment
         android:id="@+id/adDetailsFragment"
         android:name="com.minhtnn.panelway.ui.advertisement.AdDetailsFragment"
@@ -50,6 +53,7 @@
         </action>
     </fragment>
 
+    <!-- Appointment Fragment -->
     <fragment
         android:id="@+id/appointmentFragment"
         android:name="com.minhtnn.panelway.ui.appointment.AppointmentFragment"
@@ -61,6 +65,7 @@
             app:argType="string" />
     </fragment>
 
+    <!-- Appointment Confirmation Fragment -->
     <fragment
         android:id="@+id/appointmentConfirmationFragment"
         android:name="com.minhtnn.panelway.ui.appointment.AppointmentConfirmationFragment"
@@ -72,12 +77,13 @@
             app:argType="string" />
     </fragment>
 
+    <!-- ✅ Fixed Login Fragment -->
     <fragment
         android:id="@+id/loginFragment"
         android:name="com.minhtnn.panelway.ui.auth.LoginFragment"
         android:label="Login"
         tools:layout="@layout/fragment_login">
-        
+
         <action
             android:id="@+id/action_login_to_register"
             app:destination="@id/registerFragment" />
@@ -86,42 +92,39 @@
             app:destination="@id/homeFragment" />
     </fragment>
 
+    <!-- ✅ Fixed Register Fragment -->
     <fragment
         android:id="@+id/registerFragment"
         android:name="com.minhtnn.panelway.ui.auth.RegisterFragment"
         android:label="Register"
         tools:layout="@layout/fragment_register">
-        
-        <action
-            android:id="@+id/action_register_to_otpVerification"
-            app:destination="@id/otpVerificationFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/otpVerificationFragment"
-        android:name="com.minhtnn.panelway.ui.auth.OtpVerificationFragment"
-        android:label="OTP Verification"
-        tools:layout="@layout/fragment_otp_verification">
 
         <action
-            android:id="@+id/action_otpVerification_to_home"
+            android:id="@+id/action_register_to_home"
             app:destination="@id/homeFragment" />
+
+        <!-- ✅ Thêm action từ RegisterFragment tới LoginFragment -->
+        <action
+            android:id="@+id/action_register_to_login"
+            app:destination="@id/loginFragment" />
     </fragment>
 
+    <!-- Profile Fragment -->
     <fragment
         android:id="@+id/profileFragment"
         android:name="com.minhtnn.panelway.ui.profile.ProfileFragment"
         android:label="Profile"
         tools:layout="@layout/fragment_profile">
+
         <action
             android:id="@+id/action_profileFragment_to_adSpaceManagementFragment"
             app:destination="@id/adSpaceManagementFragment" />
         <action
             android:id="@+id/action_profile_to_login"
             app:destination="@id/loginFragment" />
-
     </fragment>
 
+    <!-- Ad Space Management Fragment -->
     <fragment
         android:id="@+id/adSpaceManagementFragment"
         android:name="com.minhtnn.panelway.ui.management.AdSpaceManagementFragment"
@@ -133,6 +136,7 @@
             app:destination="@id/homeFragment" />
     </fragment>
 
+    <!-- Map Fragment -->
     <fragment
         android:id="@+id/mapFragment"
         android:name="com.minhtnn.panelway.ui.map.MapFragment"
@@ -147,27 +151,29 @@
                 app:argType="string" />
         </action>
     </fragment>
-        <action
-            android:id="@+id/action_global_homeFragment"
-            app:destination="@id/homeFragment"
-            app:popUpTo="@id/homeFragment"
-            app:popUpToInclusive="true" />
 
-        <action
-            android:id="@+id/action_global_mapFragment"
-            app:destination="@id/mapFragment"
-            app:popUpTo="@id/mapFragment"
-            app:popUpToInclusive="true" />
+    <!-- ✅ Global Actions -->
+    <action
+        android:id="@+id/action_global_homeFragment"
+        app:destination="@id/homeFragment"
+        app:popUpTo="@id/homeFragment"
+        app:popUpToInclusive="true" />
 
-        <action
-            android:id="@+id/action_global_appointmentManagementFragment"
-            app:destination="@id/appointmentManagementFragment"
-            app:popUpTo="@id/appointmentManagementFragment"
-            app:popUpToInclusive="true" />
+    <action
+        android:id="@+id/action_global_mapFragment"
+        app:destination="@id/mapFragment"
+        app:popUpTo="@id/mapFragment"
+        app:popUpToInclusive="true" />
 
-        <action
-            android:id="@+id/action_global_profileFragment"
-            app:destination="@id/profileFragment"
-            app:popUpTo="@id/profileFragment"
-            app:popUpToInclusive="true" />
+    <action
+        android:id="@+id/action_global_appointmentManagementFragment"
+        app:destination="@id/appointmentManagementFragment"
+        app:popUpTo="@id/appointmentManagementFragment"
+        app:popUpToInclusive="true" />
+
+    <action
+        android:id="@+id/action_global_profileFragment"
+        app:destination="@id/profileFragment"
+        app:popUpTo="@id/profileFragment"
+        app:popUpToInclusive="true" />
 </navigation>
