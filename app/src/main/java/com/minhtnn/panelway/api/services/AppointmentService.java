@@ -10,6 +10,7 @@ import java.util.Date;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import retrofit2.http.Body;
+import retrofit2.http.PATCH;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
@@ -17,6 +18,10 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface AppointmentService {
+
+    @PATCH("appointments")
+    Single<Appointment> updateAppointment(@Body RejectAppointmentRequest request);
+
     @POST("appointments")
     Single<Appointment> createAppointment(@Body CreateAppointmentRequest request);
 
@@ -26,6 +31,7 @@ public interface AppointmentService {
             @Query("role") String role,
             @Query("bookDate") String bookDate
     );
+
 
 
     Completable cancelAppointment(String appointmentId);

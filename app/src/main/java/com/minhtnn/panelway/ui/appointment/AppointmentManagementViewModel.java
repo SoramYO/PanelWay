@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel;
 import com.minhtnn.panelway.api.ApiClient;
 import com.minhtnn.panelway.api.services.AppointmentService;
 import com.minhtnn.panelway.models.Appointment;
+import com.minhtnn.panelway.models.request.RejectAppointmentRequest;
 import com.minhtnn.panelway.utils.ErrorHandler;
 import com.minhtnn.panelway.utils.UserManager;
 
@@ -84,6 +85,39 @@ public class AppointmentManagementViewModel extends ViewModel {
         return selectedDate;
     }
 
+    public void updateAppointment(String appointmentId, String status) {
+        try {
+            // Kiểm tra xem người dùng có đăng nhập không
+            String accountId = UserManager.getInstance().getUserId();
+            if (accountId.isEmpty()) {
+                error.setValue("User not logged in");
+                return;
+            }
+
+            // Tạo request body
+            RejectAppointmentRequest request = new RejectAppointmentRequest();
+            request.setId(appointmentId);
+            request.setStatus(status);
+
+            disposables.add(
+                    appointmentService.updateAppointment(request)  // Gọi API PATCH
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(
+                                    appointment -> {
+
+                                    },
+                                    throwable -> {
+                                        // Thất bại, hiển thị lỗi
+                                        error.setValue(ErrorHandler.getErrorMessage(throwable));
+                                    }
+                            )
+            );
+        } catch (Exception e) {
+            error.setValue("Failed to update appointment: " + e.getMessage());
+        }
+    }
+
     public void loadAppointments() {
         loading.setValue(true);
         
@@ -96,7 +130,7 @@ public class AppointmentManagementViewModel extends ViewModel {
             loading.setValue(false);
             return;
         }
-        
+
         // Format date for API request
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault());
         String formattedDate = dateFormat.format(selectedDate.getValue());
