@@ -5,7 +5,7 @@ import java.util.Date;
 public class RejectAppointmentRequest {
     private String id;
     private String code;
-    private Date bookingDate;
+    private String bookingDate;
     private String place;
     private int priority;
     private String status;
@@ -14,7 +14,7 @@ public class RejectAppointmentRequest {
         // Required empty constructor
     }
 
-    public RejectAppointmentRequest(String id, String code, Date bookingDate, String place, int priority, String status) {
+    public RejectAppointmentRequest(String id, String code, String bookingDate, String place, int priority, String status) {
         this.id = id;
         this.code = code;
         this.bookingDate = bookingDate;
@@ -39,11 +39,11 @@ public class RejectAppointmentRequest {
         this.code = code;
     }
 
-    public Date getBookingDate() {
+    public String getBookingDate() {
         return bookingDate;
     }
 
-    public void setBookingDate(Date bookingDate) {
+    public void setBookingDate(String bookingDate) {
         this.bookingDate = bookingDate;
     }
 

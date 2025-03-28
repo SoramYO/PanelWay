@@ -32,7 +32,8 @@ public class AppointmentManagementViewModel extends ViewModel {
     private final MutableLiveData<Date> selectedDate = new MutableLiveData<>(new Date());
     private final CompositeDisposable disposables = new CompositeDisposable();
     private final AppointmentService appointmentService;
-    
+
+
     private boolean isOwner = false;
     private String currentStatus = null; // Default to show all statuses
 
@@ -85,31 +86,61 @@ public class AppointmentManagementViewModel extends ViewModel {
         return selectedDate;
     }
 
-    public void updateAppointment(String appointmentId, String status) {
+
+    public void updateAppointment(String appointmentId, String newStatus) {
         try {
-            // Kiểm tra xem người dùng có đăng nhập không
+            // Kiểm tra người dùng có đăng nhập không
             String accountId = UserManager.getInstance().getUserId();
             if (accountId.isEmpty()) {
                 error.setValue("User not logged in");
                 return;
             }
 
-            // Tạo request body
-            RejectAppointmentRequest request = new RejectAppointmentRequest();
-            request.setId(appointmentId);
-            request.setStatus(status);
-
+            // Gọi API để lấy thông tin cuộc hẹn trước khi cập nhật
             disposables.add(
-                    appointmentService.updateAppointment(request)  // Gọi API PATCH
+                    appointmentService.getAppointmentById(appointmentId)
                             .subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(
                                     appointment -> {
+                                        Log.d(TAG, "Fetched appointment details: " + appointment.getId());
 
+                                        // Lấy ngày hiện tại và định dạng theo chuẩn ISO
+                                        SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault());
+                                        String bookingDate = isoFormat.format(appointment.getBookingDate());
+
+                                        // Tạo request body với thông tin cũ nhưng cập nhật status
+                                        RejectAppointmentRequest request = new RejectAppointmentRequest();
+                                        request.setId(appointment.getId());
+                                        request.setStatus(newStatus);
+                                        request.setBookingDate(bookingDate);
+                                        request.setPlace(appointment.getPlace());
+                                        request.setPriority(appointment.getPriority());
+                                        request.setCode(appointment.getCode());
+
+                                        Log.d(TAG, "Updating appointment: " + appointmentId + " to status: " + newStatus);
+                                        Log.d(TAG, "Request: " + request.toString());
+
+                                        // Gọi API PATCH để cập nhật trạng thái
+                                        disposables.add(
+                                                appointmentService.updateAppointment(request)
+                                                        .subscribeOn(Schedulers.io())
+                                                        .observeOn(AndroidSchedulers.mainThread())
+                                                        .subscribe(
+                                                                updatedAppointment -> {
+                                                                    Log.d(TAG, "Appointment updated successfully!");
+                                                                    loadAppointments(); // **Tải lại danh sách sau khi cập nhật thành công**
+                                                                },
+                                                                throwable -> {
+                                                                    Log.e(TAG, "Failed to update appointment", throwable);
+                                                                    error.setValue("Failed to update appointment: " + ErrorHandler.getErrorMessage(throwable));
+                                                                }
+                                                        )
+                                        );
                                     },
                                     throwable -> {
-                                        // Thất bại, hiển thị lỗi
-                                        error.setValue(ErrorHandler.getErrorMessage(throwable));
+                                        Log.e(TAG, "Failed to fetch appointment details", throwable);
+                                        error.setValue("Failed to fetch appointment: " + ErrorHandler.getErrorMessage(throwable));
                                     }
                             )
             );
@@ -117,6 +148,8 @@ public class AppointmentManagementViewModel extends ViewModel {
             error.setValue("Failed to update appointment: " + e.getMessage());
         }
     }
+
+
 
     public void loadAppointments() {
         loading.setValue(true);

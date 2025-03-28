@@ -32,6 +32,14 @@ public interface AppointmentService {
             @Query("bookDate") String bookDate
     );
 
+    @GET("appointments/account/{id}")
+    Single<List<Appointment>> getAppointmentsbyId(
+            @Path("id") String accountId
+    );
+
+    @GET("appointments/{id}")
+    Single<Appointment> getAppointmentById(@Path("id") String appointmentId);
+
 
 
     Completable cancelAppointment(String appointmentId);

@@ -32,6 +32,7 @@ public class AppointmentViewModel extends ViewModel {
     private final AppointmentService appointmentService;
     private final CompositeDisposable disposables = new CompositeDisposable();
 
+
     public AppointmentViewModel() {
         appointmentService = ApiClient.getClient().create(AppointmentService.class);
     }
