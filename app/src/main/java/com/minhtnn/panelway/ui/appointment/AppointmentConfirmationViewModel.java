@@ -36,6 +36,7 @@ public class AppointmentConfirmationViewModel extends ViewModel {
                 .update("confirmed", true)
                 .addOnSuccessListener(aVoid -> {
                     actionResult.setValue(true);
+                    loadAppointment(appointmentId);
                 })
                 .addOnFailureListener(e -> {
                     error.setValue("Failed to confirm appointment: " + e.getMessage());
@@ -47,6 +48,7 @@ public class AppointmentConfirmationViewModel extends ViewModel {
                 .update("status", "canceled")
                 .addOnSuccessListener(aVoid -> {
                     actionResult.setValue(true);
+                    loadAppointment(appointmentId);
                 })
                 .addOnFailureListener(e -> {
                     error.setValue("Failed to cancel appointment: " + e.getMessage());
