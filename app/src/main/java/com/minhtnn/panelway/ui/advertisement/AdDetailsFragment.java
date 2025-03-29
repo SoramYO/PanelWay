@@ -19,6 +19,7 @@ import com.minhtnn.panelway.R;
 import com.minhtnn.panelway.databinding.FragmentAdDetailsBinding;
 import com.minhtnn.panelway.models.RentalLocation;
 
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
@@ -84,8 +85,15 @@ public class AdDetailsFragment extends Fragment {
         binding.rentalLocationText.setText(location.getAddress() != null ? location.getAddress() : "No address");
 
         double price = location.getPrice();
-        binding.rentalPriceText.setText(price > 0 ?
-                String.format(Locale.getDefault(), "%.1fM", price) : "N/A");
+        if (price > 0) {
+            // Sử dụng Locale của Việt Nam
+            NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+            // Định dạng giá và loại bỏ ký hiệu mặc định (nếu cần), sau đó thêm "₫"
+            String formattedPrice = currencyFormat.format(price).replace("₫", "").trim() + " ₫";
+            binding.rentalPriceText.setText(formattedPrice);
+        } else {
+            binding.rentalPriceText.setText("N/A");
+        }
         binding.rentalSizeText.setText(location.getPanelSize() != null ? location.getPanelSize() : "Unknown size");
 
         // Hiển thị ngày có sẵn
