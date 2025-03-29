@@ -11,6 +11,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.PATCH;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Path;
@@ -27,6 +28,14 @@ public interface AppointmentService {
             @Query("bookDate") String bookDate
     );
 
+    @PATCH("appointments")
+    Single<Appointment> updateAppointment(@Body RejectAppointmentRequest request);
+    @GET("appointments/account/{id}")
+    Single<List<Appointment>> getAppointmentsbyId(
+            @Path("id") String accountId
+    );
 
+    @GET("appointments/{id}")
+    Single<Appointment> getAppointmentById(@Path("id") String appointmentId);
     Completable cancelAppointment(String appointmentId);
 }

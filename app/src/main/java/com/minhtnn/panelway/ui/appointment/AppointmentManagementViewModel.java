@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel;
 import com.minhtnn.panelway.api.ApiClient;
 import com.minhtnn.panelway.api.services.AppointmentService;
 import com.minhtnn.panelway.models.Appointment;
+import com.minhtnn.panelway.models.request.RejectAppointmentRequest;
 import com.minhtnn.panelway.utils.ErrorHandler;
 import com.minhtnn.panelway.utils.UserManager;
 
@@ -125,7 +126,69 @@ public class AppointmentManagementViewModel extends ViewModel {
                 )
         );
     }
+    public void updateAppointment(String appointmentId, String status) {
+        try {
+            // Kiểm tra xem người dùng có đăng nhập không
+            String accountId = UserManager.getInstance().getUserId();
+            if (accountId.isEmpty()) {
+                error.setValue("User not logged in");
+                return;
+            }
 
+//            // Tạo request body
+//            RejectAppointmentRequest request = new RejectAppointmentRequest();
+//            request.setId(appointmentId);
+//            request.setStatus(status);
+
+            disposables.add(
+                    appointmentService.getAppointmentById(appointmentId)  // Gọi API PATCH
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(
+                                    appointment -> {
+                                        Log.d(TAG, "Fetched appointment details: " + appointment.getId());
+                                        // Lấy ngày hiện tại và định dạng theo chuẩn ISO
+                                        SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault());
+                                        String bookingDate = isoFormat.format(appointment.getBookingDate());
+                                        // Tạo request body với thông tin cũ nhưng cập nhật status
+                                        RejectAppointmentRequest request = new RejectAppointmentRequest();
+                                        request.setId(appointment.getId());
+                                        request.setStatus(status);
+                                        request.setBookingDate(bookingDate);
+                                        request.setPlace(appointment.getPlace());
+                                        request.setPriority(appointment.getPriority());
+                                        request.setCode(appointment.getCode());
+                                        Log.d(TAG, "Updating appointment: " + appointmentId + " to status: " + status);
+                                        Log.d(TAG, "Request: " + request.toString());
+                                        // Gọi API PATCH để cập nhật trạng thái
+                                        disposables.add(
+                                                appointmentService.updateAppointment(request)
+                                                        .subscribeOn(Schedulers.io())
+                                                        .observeOn(AndroidSchedulers.mainThread())
+                                                        .subscribe(
+                                                                updatedAppointment -> {
+                                                                    Log.d(TAG, "Appointment updated successfully!");
+                                                                    loadAppointments(); // **Tải lại danh sách sau khi cập nhật thành công**
+                                                                },
+                                                                throwable -> {
+                                                                    Log.e(TAG, "Failed to update appointment", throwable);
+                                                                    error.setValue("Failed to update appointment: " + ErrorHandler.getErrorMessage(throwable));
+                                                                }
+                                                        )
+                                        );
+                                    },
+                                    throwable -> {
+                                        // Thất bại, hiển thị lỗi
+                                        error.setValue(ErrorHandler.getErrorMessage(throwable));
+                                        Log.e(TAG, "Failed to fetch appointment details", throwable);
+                                        error.setValue("Failed to fetch appointment: " + ErrorHandler.getErrorMessage(throwable));
+                                    }
+                            )
+            );
+        } catch (Exception e) {
+            error.setValue("Failed to update appointment: " + e.getMessage());
+        }
+    }
     private List<Appointment> filterAppointments(List<Appointment> allAppointments) {
         // If no status filter is set, return all appointments
         if (currentStatus == null) {

@@ -22,10 +22,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+
 
 public class HomeViewModel extends ViewModel {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -56,78 +58,70 @@ public class HomeViewModel extends ViewModel {
 
     private void loadRentalLocations() {
         Disposable rentalLocationsDisposable = rentalLocationRepository.getAllRentalLocations(1, 10)
+                .flatMap(this::loadImagesForLocations)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         response -> {
-                            // First, set the initial response
-                            List<RentalLocation> locations = response.getItems();
-
-                            // Load images for each rental location
-                            if (locations != null && !locations.isEmpty()) {
-                                loadRentalLocationImages(locations);
-                            }
-
+                            // Update with locations that now have images
                             rentalLocationPaging.setValue(response);
                         },
-                        error -> {
-                            Log.e("API", "Error fetching rental locations", error);
-                            this.error.setValue("Failed to load rental locations: " + error.getMessage());
+                        throwable -> {
+                            Log.e("API", "Error fetching rental locations", throwable);
+                            error.setValue("Failed to load rental locations: " + throwable.getMessage());
                         }
                 );
 
         compositeDisposable.add(rentalLocationsDisposable);
     }
+    private Single<RentalLocationsResponse> loadImagesForLocations(RentalLocationsResponse response) {
+        List<RentalLocation> locations = response.getItems();
 
-    private void loadRentalLocationImages(List<RentalLocation> locations) {
-        for (RentalLocation location : locations) {
-            Disposable imageDisposable = rentalLocationImagesRepository.getImagesByRentalLocationId(location.getId())
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                            images -> {
-                                // Detailed debugging
-                                Log.d("ImageLoading", "Location ID: " + location.getId());
-                                Log.d("ImageLoading", "Images received: " + images.size());
-
-                                // Extensive logging for each image
-                                for (int i = 0; i < images.size(); i++) {
-                                    RentalLocationImage image = images.get(i);
-                                    Log.d("ImageLoading", "Image " + i + " details:");
-                                    Log.d("ImageLoading", "  - ID: " + image.getId());
-                                    Log.d("ImageLoading", "  - Original URL: " + image.getUrlImage());
-                                    Log.d("ImageLoading", "  - Rental Location ID: " + image.getRentalLocationId());
-                                    Log.d("ImageLoading", "  - Description: " + image.getDescription());
-                                }
-
-                                // Modify image mapping to preserve all original properties
-                                List<RentalLocationImage> mappedImages = images.stream()
-                                        .map(image -> {
-                                            RentalLocationImage locationImage = new RentalLocationImage();
-                                            locationImage.setId(image.getId());
-                                            locationImage.setUrlImage(image.getUrlImage());
-                                            locationImage.setDescription(image.getDescription());
-                                            locationImage.setDaylight(image.isDaylight());
-                                            locationImage.setRentalLocationId(image.getRentalLocationId());
-                                            return locationImage;
-                                        })
-                                        .collect(Collectors.toList());
-
-                                location.setRentalLocationImageList(mappedImages);
-
-                                // Trigger an update of the entire list
-                                RentalLocationsResponse currentResponse = rentalLocationPaging.getValue();
-                                if (currentResponse != null) {
-                                    rentalLocationPaging.setValue(currentResponse);
-                                }
-                            },
-                            error -> {
-                                Log.e("ImageLoading", "Error fetching images for location " + location.getId(), error);
-                            }
-                    );
-
-            compositeDisposable.add(imageDisposable);
+        if (locations == null || locations.isEmpty()) {
+            return Single.just(response);
         }
+
+        // Create a list of Singles for image loading
+        List<Single<RentalLocation>> imageLoadingSingles = locations.stream()
+                .map(this::loadImagesForSingleLocation)
+                .collect(Collectors.toList());
+
+        // Combine all image loading operations
+        return Single.zip(imageLoadingSingles, objects -> {
+            // Convert back to original response type
+            for (int i = 0; i < objects.length; i++) {
+                locations.set(i, (RentalLocation) objects[i]);
+            }
+            return response;
+        });
+    }
+
+    private Single<RentalLocation> loadImagesForSingleLocation(RentalLocation location) {
+        return rentalLocationImagesRepository.getImagesByRentalLocationId(location.getId())
+                .map(images -> {
+                    // Only set images if the list is not null and not empty
+                    if (images != null && !images.isEmpty()) {
+                        List<RentalLocationImage> mappedImages = images.stream()
+                                .map(image -> {
+                                    RentalLocationImage locationImage = new RentalLocationImage();
+                                    locationImage.setId(image.getId());
+                                    locationImage.setUrlImage(image.getUrlImage());
+                                    locationImage.setDescription(image.getDescription());
+                                    locationImage.setDaylight(image.isDaylight());
+                                    locationImage.setRentalLocationId(image.getRentalLocationId());
+                                    return locationImage;
+                                })
+                                .collect(Collectors.toList());
+
+                        location.setRentalLocationImageList(mappedImages);
+                    }
+                    return location;
+                })
+                .onErrorReturn(throwable -> {
+                    // Handle error for this specific location
+                    Log.e("ImageLoading", "Error fetching images for location " + location.getId(), throwable);
+                    return location; // Return original location even if image loading fails
+                });
     }
 
     private void loadSpaces() {

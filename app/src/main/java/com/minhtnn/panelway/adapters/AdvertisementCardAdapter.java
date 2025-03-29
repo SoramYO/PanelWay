@@ -79,16 +79,21 @@ public class AdvertisementCardAdapter extends ListAdapter<RentalLocation, Advert
             detailsTextView = itemView.findViewById(R.id.details_text_view);
         }
 
-        void bind(RentalLocation rentalLocation, OnAdvertisementClickListener clickListener) {
+        public void bind(RentalLocation rentalLocation, OnAdvertisementClickListener clickListener) {
             // Set loading progress bar
             loadingProgressBar.setVisibility(View.VISIBLE);
 
-            // Load image using Glide (make sure to add Glide dependency)
+            // Check if image list is null or empty
+            String imageUrl = "";
+            if (rentalLocation.getRentalLocationImageList() != null &&
+                    !rentalLocation.getRentalLocationImageList().isEmpty()) {
+                imageUrl = rentalLocation.getRentalLocationImageList().get(0).getUrlImage();
+            }
+
+            // Load image using Glide
             Glide.with(itemView.getContext())
-                    .load((rentalLocation.getRentalLocationImageList() != null)
-                            ? rentalLocation.getRentalLocationImageList().get(0).getUrlImage()
-                            : "")
-                    .error(R.drawable.image_not_found) // Add this line to specify fallback image
+                    .load(imageUrl)
+                    .error(R.drawable.image_not_found)
                     .listener(new RequestListener<Drawable>() {
                         @Override
                         public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {

@@ -10,7 +10,7 @@
         android:name="com.minhtnn.panelway.ui.home.HomeFragment"
         android:label="Home"
         tools:layout="@layout/fragment_home">
-        
+
         <action
             android:id="@+id/action_home_to_details"
             app:destination="@id/adDetailsFragment">
@@ -77,7 +77,7 @@
         android:name="com.minhtnn.panelway.ui.auth.LoginFragment"
         android:label="Login"
         tools:layout="@layout/fragment_login">
-        
+
         <action
             android:id="@+id/action_login_to_register"
             app:destination="@id/registerFragment" />
@@ -91,7 +91,7 @@
         android:name="com.minhtnn.panelway.ui.auth.RegisterFragment"
         android:label="Register"
         tools:layout="@layout/fragment_register">
-        
+
         <action
             android:id="@+id/action_register_to_otpVerification"
             app:destination="@id/otpVerificationFragment" />

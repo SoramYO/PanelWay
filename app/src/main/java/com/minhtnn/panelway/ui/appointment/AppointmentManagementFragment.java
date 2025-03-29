@@ -60,12 +60,12 @@ public class AppointmentManagementFragment extends Fragment {
         adapter = new AppointmentAdapter(viewModel.isOwner(), new AppointmentAdapter.AppointmentCallback() {
             @Override
             public void onAccept(String appointmentId) {
-               // viewModel.confirmAppointment(appointmentId);
+                viewModel.updateAppointment(appointmentId, "confirmed");
             }
 
             @Override
             public void onReject(String appointmentId) {
-               // viewModel.cancelAppointment(appointmentId);
+                viewModel.updateAppointment(appointmentId, "canceled");
             }
         });
 

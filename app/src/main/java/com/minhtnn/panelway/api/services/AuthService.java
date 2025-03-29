@@ -14,7 +14,7 @@ public interface AuthService {
     @POST("auth/login")
     Single<AuthResponse> login(@Body LoginRequest request);
 
-    @POST("auth/register")
+    @POST("auth/sign-up")
     Single<AuthResponse> register(@Body RegisterRequest request);
 
     @POST("verify")
