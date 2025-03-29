@@ -15,6 +15,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 public class AppointmentRepository {
     private final AppointmentService apiService;
@@ -26,25 +27,40 @@ public class AppointmentRepository {
     }
 
     public Single<Appointment> createAppointment(CreateAppointmentRequest request) {
+        Log.d("AppointmentRepository", "Starting createAppointment with request: " + request.toString());
         return apiService.createAppointment(request)
                 .subscribeOn(Schedulers.io())
+                .doOnSuccess(appointment -> Log.d("AppointmentRepository", "API response: " + appointment.toString()))
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnSuccess(this::scheduleReminders);
+                .doOnSuccess(this::scheduleReminders)
+                .doOnError(throwable -> Log.e("AppointmentRepository", "Error in createAppointment: " + throwable.getMessage(), throwable));
     }
 
     private void scheduleReminders(Appointment appointment) {
-        // Schedule 24-hour confirmation notification
-        long hoursInMillis = TimeUnit.HOURS.toMillis(24);
-        long timeUntilReminder = appointment.getAppointmentTime().getTime() - hoursInMillis - System.currentTimeMillis();
-        
-        if (timeUntilReminder > 0) {
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                NotificationHelper.createNotification(
-                    context,
-                    "Appointment Confirmation Needed",
-                    "Please confirm your appointment scheduled for tomorrow"
-                );
-            }, timeUntilReminder);
+        try {
+            if (appointment == null || appointment.getAppointmentTime() == null) {
+                Log.w("AppointmentRepository", "Cannot schedule reminder: appointment or appointmentTime is null");
+                return;
+            }
+
+            // Schedule 24-hour confirmation notification
+            long hoursInMillis = TimeUnit.HOURS.toMillis(24);
+            long timeUntilReminder = appointment.getAppointmentTime().getTime() - hoursInMillis - System.currentTimeMillis();
+
+            if (timeUntilReminder > 0) {
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    NotificationHelper.createNotification(
+                            context,
+                            "Appointment Confirmation Needed",
+                            "Please confirm your appointment scheduled for tomorrow"
+                    );
+                }, timeUntilReminder);
+            } else {
+                Log.d("AppointmentRepository", "Reminder time is in the past, not scheduling: " + timeUntilReminder);
+            }
+        } catch (Exception e) {
+            Log.e("AppointmentRepository", "Error in scheduleReminders: " + e.getMessage(), e);
+            // Không ném lại ngoại lệ để không làm gián đoạn luồng RxJava
         }
     }
 

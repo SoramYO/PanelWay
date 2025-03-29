@@ -108,7 +108,7 @@ public void bookAppointment(Date date, String time) {
         calendar.set(Calendar.MINUTE, minute);
         
         CreateAppointmentRequest request = new CreateAppointmentRequest();
-        request.setBookingDate(calendar.getTime());
+//        request.setBookingDate(calendar.getTime());
         request.setRentalLocationId(advertisementId);
         request.setAdContentId(advertisementId); // This might need to be different
         request.setPriority(0);

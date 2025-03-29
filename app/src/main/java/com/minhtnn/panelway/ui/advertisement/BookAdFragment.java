@@ -82,6 +82,7 @@ public class BookAdFragment extends Fragment {
             if (request != null) {
                 // Gọi API thông qua AppointmentRepository
                 callCreateAppointmentApi(request);
+
             } else {
                 Toast.makeText(requireContext(), "Không thể tạo lịch hẹn do thiếu thông tin", Toast.LENGTH_SHORT).show();
             }
@@ -92,9 +93,6 @@ public class BookAdFragment extends Fragment {
         try {
             // Tạo mã ngẫu nhiên (có thể thay bằng logic của bạn)
             String code = String.valueOf(System.currentTimeMillis());
-
-            // Đảm bảo giờ có định dạng 2 chữ số (HH:mm)
-            String formattedFromTime = selectedFromTime.length() == 4 ? "0" + selectedFromTime : selectedFromTime; // Chuyển "9:00" thành "09:00"
 
             // Kiểm tra và sửa selectedDate nếu cần
             String fullDateStr;
@@ -107,26 +105,42 @@ public class BookAdFragment extends Fragment {
                 fullDateStr = selectedDate; // Đã có định dạng đầy đủ (ví dụ: "28/03/2025")
             }
 
-            // Chuyển đổi ngày và giờ thành định dạng Date
-            SimpleDateFormat inputDateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
-            String bookingDateStr = fullDateStr + " " + formattedFromTime; // Ví dụ: "28/03/2025 09:00"
-            Date bookingDate = inputDateFormat.parse(bookingDateStr);
+            // Chuyển đổi ngày thành định dạng Date (chỉ lấy ngày)
+            SimpleDateFormat dateOnlyFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            Date dateOnly = dateOnlyFormat.parse(fullDateStr);
+
+            // Parse thời gian từ selectedFromTime (dạng "HH:mm", ví dụ: "9:00")
+            String[] timeParts = selectedFromTime.split(":");
+            int hour = Integer.parseInt(timeParts[0]);
+            int minute = Integer.parseInt(timeParts[1]);
+
+            // Kết hợp ngày và giờ bằng Calendar
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(dateOnly);
+            calendar.set(Calendar.HOUR_OF_DAY, hour);
+            calendar.set(Calendar.MINUTE, minute);
+            calendar.set(Calendar.SECOND, 46);      // Đặt giây là 46 (để khớp với 04:50:46.566)
+            calendar.set(Calendar.MILLISECOND, 566); // Đặt mili giây là 566 (để khớp với 04:50:46.566)
 
             // Chuyển đổi thời gian sang múi giờ UTC
-            SimpleDateFormat utcFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault());
-            utcFormat.setTimeZone(TimeZone.getTimeZone("UTC")); // Đặt múi giờ là UTC
-            String utcBookingDateStr = utcFormat.format(bookingDate);
-            Date utcBookingDate = utcFormat.parse(utcBookingDateStr); // Parse lại để đảm bảo thời gian là UTC
+            calendar.setTimeZone(TimeZone.getTimeZone("UTC")); // Đặt múi giờ là UTC
+            Date utcBookingDate = calendar.getTime();
+
+            // Log để kiểm tra giá trị
+            SimpleDateFormat utcFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault());
+            utcFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+            String utcBookingDateStr = utcFormat.format(utcBookingDate);
+            Log.d("BookAdFragment", "UTC Booking Date String: " + utcBookingDateStr);
 
             // Lấy thông tin từ Bundle
             String place = args != null ? args.getString("diaChi", "") : "";
             String rentalLocationId = args != null ? args.getString("maQuangCao", "") : "";
-            String adContentId = String.valueOf(System.currentTimeMillis()); // Chỉ lấy id từ System.currentTimeMillis()
+            String adContentId = "154ebe31-affd-48f7-97a9-2fdd95e5e0ea"; // ID mẫu
 
             // Tạo đối tượng CreateAppointmentRequest
             CreateAppointmentRequest request = new CreateAppointmentRequest();
             request.setCode(code);
-            request.setBookingDate(utcBookingDate); // Đặt bookingDate là thời gian UTC
+            request.setBookingDate(utcBookingDate); // Gán đối tượng Date
             request.setPlace(place);
             request.setPriority(0); // Priority mặc định là 0
             request.setAdContentId(adContentId);
